@@ -1,5 +1,5 @@
-from goat.forward import goat
-from goat.reverse import reverse_goat
+from GoatThinClient.forward import goat
+from GoatThinClient.reverse import reverse_goat
 
 __version__ = '1.0'
 
