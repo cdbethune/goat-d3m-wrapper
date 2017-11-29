@@ -7,8 +7,8 @@ setup(name='GoatThinClient',
     install_requires=["requests","typing"],
     entry_points = {
         'd3m.primitives': [
-            'distil.Goat = GoatThinClient:goat',
-            'distil.ReverseGoat = GoatThinClient:reverse_goat'
+            'distil.Goat.forward = GoatThinClient:goat',
+            'distil.Goat.reverse = GoatThinClient:reverse_goat'
         ],
     },
 )
