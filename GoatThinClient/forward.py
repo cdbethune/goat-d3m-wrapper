@@ -4,6 +4,7 @@ import ast
 import time
 from json import JSONDecoder
 from typing import List
+from primitive_interfaces.base import PrimitiveBase
 
 Inputs = str
 Outputs = List[float]
