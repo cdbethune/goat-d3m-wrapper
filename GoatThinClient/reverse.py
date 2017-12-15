@@ -3,10 +3,9 @@ import requests
 import ast
 import time
 from json import JSONDecoder
-from typing import List, Tuple
-from primitive_interfaces.base import PrimitiveBase
+from typing import List
 
-Inputs = Tuple[str,List[float]]
+Inputs = List[float]
 Outputs = dict
 Params = dict
 CallMetadata = dict
@@ -14,7 +13,8 @@ CallMetadata = dict
 class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
     __author__ = "distil"
     __metadata__ = {}
-    def __init__(self)-> None:
+    def __init__(self, address: str)-> None:
+        self.address = address
         self.decoder = JSONDecoder()
         self.callMetadata = {}
         self.params = {}
@@ -68,13 +68,13 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
 
 if __name__ == '__main__':
     address = 'http://localhost:2322/'
-    client = reverse_goat()
+    client = reverse_goat(address)
     in_str = list([-0.18,5.6])
     print("reverse geocoding the coordinates:")
     print(in_str)
     print("DEBUG::result (dictionary):")
     start = time.time()
-    result = client.produce([address,in_str])
+    result = client.produce(in_str)
     end = time.time()
     print(result)
     print("time elapsed is (in sec):")
