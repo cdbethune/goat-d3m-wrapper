@@ -3,10 +3,10 @@ import requests
 import ast
 import time
 from json import JSONDecoder
-from typing import List
+from typing import List, Tuple
 from primitive_interfaces.base import PrimitiveBase
 
-Inputs = str
+Inputs = Tuple[str,str]
 Outputs = List[float]
 Params = dict
 CallMetadata = dict
@@ -14,8 +14,7 @@ CallMetadata = dict
 class goat(PrimitiveBase[Inputs, Outputs, Params]):
     __author__ = "distil"
     __metadata__ = {}
-    def __init__(self, address: str)-> None:
-        self.address = address
+    def __init__(self)-> None:
         self.decoder = JSONDecoder()
         self.callMetadata = {}
         self.params = {}
@@ -64,10 +63,10 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
 
 if __name__ == '__main__':
     address = 'http://localhost:2322/'
-    client = goat(address)
+    client = goat()
     in_str = '3810 medical pkwy' # addresses work! so does 'austin', etc
     start = time.time()
-    result = client.produce(in_str)
+    result = client.produce([address,in_str])
     end = time.time()
     print("geocoding "+in_str)
     print("DEBUG::result ([long,lat]):")
