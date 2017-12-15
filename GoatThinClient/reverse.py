@@ -3,7 +3,8 @@ import requests
 import ast
 import time
 from json import JSONDecoder
-from typing import List
+from typing import List, Tuple
+from primitive_interfaces.base import PrimitiveBase
 
 Inputs = List[float]
 Outputs = dict
