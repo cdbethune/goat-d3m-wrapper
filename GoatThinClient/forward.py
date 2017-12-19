@@ -32,7 +32,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
     def get_call_metadata(self) -> CallMetadata:
         return self.callMetadata
 
-    def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> Outputs:
+    def produce(self, inputs: Inputs, timeout: float = None, iterations: int = None) -> Outputs:
         """
         Accept a location string, process it and return long/lat coordinates.
         
