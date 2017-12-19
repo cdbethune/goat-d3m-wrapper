@@ -56,10 +56,11 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
             
     def getCoordinates(self,in_str:str) -> List[float]:
         try:
+            print("DEBUG::starting")
             r = requests.get(self.address+'api?q='+in_str)
             
             result = self.decoder.decode(r.text)['features'][0]['geometry']['coordinates']
-            
+            print("DEBUG::done")
             return result
             
         except:
