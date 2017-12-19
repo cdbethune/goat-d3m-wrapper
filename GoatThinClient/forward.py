@@ -51,7 +51,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
         Outputs
             A list of 2 floats, [longitude, latitude]
         """
-        return self.getCoordinates(Inputs)
+        return self.getCoordinates(self, Inputs)
         
             
     def getCoordinates(self,in_str:str) -> List[float]:

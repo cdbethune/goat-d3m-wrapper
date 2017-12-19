@@ -53,7 +53,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
             a dictionary in GeoJSON format (sub-dictionary 'features/0/properties' to be precise)
         """
             
-        return self.getLocationDict(Inputs)
+        return self.getLocationDict(self,Inputs)
             
     def getLocationDict(self,in_str:List[float]) -> dict:
         try:
