@@ -32,7 +32,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
     def get_call_metadata(self) -> CallMetadata:
         return self.callMetadata
         
-    def produce(self, inputs: Inputs, timeout: float = None, iterations: int = None) -> Outputs:
+    def produce(self, inputs: Inputs) -> Outputs:
         """
         Accept a lat/long pair, process it and return corresponding geographic location (as GeoJSON dict,
         see geojson).
@@ -53,7 +53,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
             a dictionary in GeoJSON format (sub-dictionary 'features/0/properties' to be precise)
         """
             
-        return self.getLocationDict(self,Inputs)
+        return self.getLocationDict(Inputs)
             
     def getLocationDict(self,in_str:List[float]) -> dict:
         try:
