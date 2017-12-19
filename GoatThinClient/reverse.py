@@ -51,14 +51,10 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
             
     def getLocationDict(self,in_str:List[float]) -> dict:
         try:
-            print("DEBUG::starting")
-            print("DEBUG:: address+'reverse?lon='+in_str[0]+'&lat='+in_str[1]:")
-            print(self.address+'reverse?lon='+str(in_str[0])+'&lat='+str(in_str[1]))
-            
             r = requests.get(self.address+'reverse?lon='+str(in_str[0])+'&lat='+str(in_str[1]))
             
             result = self.decoder.decode(r.text)['features'][0]['properties']
-            print("DEBUG::done")
+            
             return result
             
         except:
