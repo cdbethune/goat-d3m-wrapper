@@ -51,7 +51,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
         Outputs
             A list of 2 floats, [longitude, latitude]
         """
-        return self.getCoordinates(Inputs)
+        return self.getCoordinates(inputs)
         
             
     def getCoordinates(self,in_str:str) -> List[float]:
@@ -72,9 +72,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
 if __name__ == '__main__':
     address = 'http://localhost:2322/'
     client = goat(address)
-    in_str = '3810 medical pkwy' # addresses work! so does 'austin', etc
+    in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
     start = time.time()
-    result = client.getCoordinates(in_str)
+    result = client.produce(in_str)
     end = time.time()
     print("geocoding "+in_str)
     print("DEBUG::result ([long,lat]):")

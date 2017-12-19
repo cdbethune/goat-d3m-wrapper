@@ -40,12 +40,6 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
         Parameters
         ----------
         inputs : List of 2 coordinate float values, i.e., [longitude,latitude]
-        
-        timeout : float
-            A maximum time this primitive should take to produce outputs during this method call, in seconds.
-            Inapplicable for now...
-        iterations : int
-            How many of internal iterations should the primitive do. Inapplicable for now...
 
         Returns
         -------
@@ -53,7 +47,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params]):
             a dictionary in GeoJSON format (sub-dictionary 'features/0/properties' to be precise)
         """
             
-        return self.getLocationDict(Inputs)
+        return self.getLocationDict(inputs)
             
     def getLocationDict(self,in_str:List[float]) -> dict:
         try:
