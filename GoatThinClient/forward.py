@@ -4,20 +4,37 @@ import ast
 import time
 from json import JSONDecoder
 from typing import List, Tuple
-from primitive_interfaces.base import PrimitiveBase
+from primitive_interfaces.base import PrimitiveBase, CallResult
+
+from d3m_metadata import container, hyperparams, metadata as metadata_module, params, utils
+
+from . import __author__, __version__
+
+__all__ = ('goat',)
+
 
 Inputs = str
-Outputs = List[float]
-Params = dict
-CallMetadata = dict
+Outputs = List[float] # container.List[float]?
 
-class goat(PrimitiveBase[Inputs, Outputs, Params]):
-    __author__ = "distil"
-    __metadata__ = {}
-    def __init__(self, address: str)-> None:
+
+class Params(params.Params):
+    pass
+
+
+class Hyperparams(hyperparams.Hyperparams):
+    pass
+
+
+class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
+    
+    # make sure to populate this with JSON annotations later
+    metadata = metadata_module.PrimitiveMetadata({})
+    
+    def __init__(self, address: str, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)
+                
         self.address = address
         self.decoder = JSONDecoder()
-        self.callMetadata = {}
         self.params = {}
         
     def fit(self) -> None:
@@ -26,13 +43,10 @@ class goat(PrimitiveBase[Inputs, Outputs, Params]):
     def get_params(self) -> Params:
         return self.params
 
-    def set_params(self, params: Params) -> None:
+    def set_params(self, *, params: Params) -> None:
         self.params = params
 
-    def get_call_metadata(self) -> CallMetadata:
-        return self.callMetadata
-
-    def produce(self, inputs: Inputs) -> Outputs:
+    def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
         Accept a location string, process it and return long/lat coordinates.
         
