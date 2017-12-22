@@ -46,6 +46,9 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     def set_params(self, *, params: Params) -> None:
         self.params = params
         
+    def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
+        pass
+        
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
         Accept a lat/long pair, process it and return corresponding geographic location (as GeoJSON dict,
