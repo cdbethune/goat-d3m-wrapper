@@ -2,6 +2,7 @@ import pickle
 import requests
 import ast
 import time
+import typing
 from json import JSONDecoder
 from typing import List, Tuple
 from primitive_interfaces.base import PrimitiveBase, CallResult
