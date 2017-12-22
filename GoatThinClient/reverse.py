@@ -8,9 +8,8 @@ from primitive_interfaces.base import PrimitiveBase, CallResult
 
 from d3m_metadata import container, hyperparams, metadata as metadata_module, params, utils
 
-from . import __author__, __version__
-
-__all__ = ('reverse_goat',)
+__author__ = 'Distil'
+__version__ = '1.0.0'
 
 
 Inputs = List[float] # container.List[float]?
