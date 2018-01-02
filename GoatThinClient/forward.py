@@ -25,7 +25,7 @@ class Hyperparams(hyperparams.Hyperparams):
     pass
 
 
-class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams],address):
+class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams],address='http://localhost:2322/'):
     
     # make sure to populate this with JSON annotations later
     metadata = metadata_module.PrimitiveMetadata({})
