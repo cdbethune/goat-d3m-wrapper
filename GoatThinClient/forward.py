@@ -68,12 +68,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         Outputs
             A list of 2 floats, [longitude, latitude]
         """
-        return self.getCoordinates(inputs)
         
-            
-    def getCoordinates(self,in_str:str="http://localhost:2322/") -> List[float]:
         try:
-            r = requests.get(self.address+'api?q='+in_str)
+            r = requests.get(self.address+'api?q='+inputs[0])
             
             result = self.decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
