@@ -71,7 +71,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         return self.getCoordinates(inputs)
         
             
-    def getCoordinates(self,in_str:str) -> List[float]:
+    def getCoordinates(self,in_str:str="http://localhost:2322/") -> List[float]:
         try:
             r = requests.get(self.address+'api?q='+in_str)
             
