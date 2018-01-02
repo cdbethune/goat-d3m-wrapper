@@ -13,8 +13,8 @@ __author__ = 'Distil'
 __version__ = '1.0.0'
 
 
-Inputs = str
-Outputs = List[float] # container.List[float]?
+Inputs = container.List[str]
+Outputs = container.List[float] # container.List[float]?
 
 
 class Params(params.Params):
@@ -30,7 +30,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     # make sure to populate this with JSON annotations later
     metadata = metadata_module.PrimitiveMetadata({})
     
-    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
+    def __init__(self, address: str, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)
                 
         self.address = address
