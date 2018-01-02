@@ -33,8 +33,8 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)
                 
-        self.decoder = JSONDecoder()
-        self.params = {}
+        self._decoder = JSONDecoder()
+        self._params = {}
         
     def fit(self) -> None:
         pass
@@ -71,7 +71,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         try:
             r = requests.get(inputs[0]+'api?q='+inputs[1])
             
-            result = self.decoder.decode(r.text)['features'][0]['geometry']['coordinates']
+            result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
             return result
             
