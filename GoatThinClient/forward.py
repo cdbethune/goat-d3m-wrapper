@@ -54,7 +54,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@3c23fb3ebc74f2afb9d7d6ed69ace83278183521#subdirectory=',
+            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git{git_commit}#subdirectory=primitives'.format(
+                git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+            ),
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.forward',
