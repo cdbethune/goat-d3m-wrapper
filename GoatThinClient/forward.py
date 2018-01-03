@@ -15,7 +15,7 @@ __version__ = '1.0.0'
 
 
 Inputs = container.List[str]
-Outputs = container.List[float] # container.List[float]?
+Outputs = container.List[float]
 
 
 class Params(params.Params):
@@ -77,10 +77,10 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         pass
     
     def get_params(self) -> Params:
-        return self.params
+        return self._params
 
     def set_params(self, *, params: Params) -> None:
-        self.params = params
+        self._params = params
     
     def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
         pass
