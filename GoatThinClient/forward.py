@@ -55,7 +55,6 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
             'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@4b0738c#subdirectory=primitives',
-            ),
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.forward',
