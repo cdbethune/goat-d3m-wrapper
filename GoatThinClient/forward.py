@@ -28,7 +28,41 @@ class Hyperparams(hyperparams.Hyperparams):
 class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     
     # make sure to populate this with JSON annotations later
-    metadata = metadata_module.PrimitiveMetadata({})
+    metadata = # This should contain only metadata which cannot be automatically determined from the code.
+    metadata = metadata_module.PrimitiveMetadata({
+        # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
+        'id': "c7c61da3-cf57-354e-8841-664853370106",
+        'version': __version__,
+        'name': "Goat.forward",
+        # Keywords do not have a controlled vocabulary. Authors can put here whatever they find suitable.
+        'keywords': ['Geocoder'],
+        'source': {
+            'name': __author__,
+            'uris': [
+                # Unstructured URIs. Link to file and link to repo in this case.
+                "https://github.com/NewKnowledge/geocoding-thin-client",
+            ],
+        },
+        # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
+        # Of course Python packages can also have their own dependencies, but sometimes it is necessary to
+        # install a Python package first to be even able to run setup.py of another package. Or you have
+        # a dependency which is not on PyPi.
+        'installation': [{
+            'type': metadata_module.PrimitiveInstallationType.PIP,
+            'package_uri': "git+git://github.com/NewKnowledge/geocoding-thin-client#subdirectory=primitives".format(
+                git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+            ),
+        }],
+        # The same path the primitive is registered with entry points in setup.py.
+        'python_path': 'd3m.primitives.distil.Goat.forward',
+        # Choose these from a controlled vocabulary in the schema. If anything is missing which would
+        # best describe the primitive, make a merge request.
+        'algorithm_types': [
+            metadata_module.PrimitiveAlgorithmType.LINEAR_REGRESSION,
+        ],
+        'primitive_family': metadata_module.PrimitiveFamily.REGRESSION,
+    })
+
     
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)
