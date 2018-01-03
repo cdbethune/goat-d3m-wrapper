@@ -30,10 +30,10 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
-    print("DEBUG::")
-    print(__file__)
-    print(os.path.dirname(__file__))
-    print(utils.current_git_commit(os.path.dirname(__file__)))
+    #print("DEBUG::")
+    #print(__file__)
+    #print(os.path.dirname(__file__))
+    #print(utils.current_git_commit(os.path.dirname(__file__)))
     metadata = metadata_module.PrimitiveMetadata({
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "c7c61da3-cf57-354e-8841-664853370106",
@@ -54,8 +54,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+git://gitlab.com/datadrivendiscovery/tests-data.git@{git_commit}#subdirectory=primitives'.format(
-                git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@4b0738c#subdirectory=primitives',
             ),
         }],
         # The same path the primitive is registered with entry points in setup.py.
