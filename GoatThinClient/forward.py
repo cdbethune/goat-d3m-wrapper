@@ -30,6 +30,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
+    print("DEBUG::")
+    print(__file__)
+    print(utils.current_git_commit(os.path.dirname(__file__))
     metadata = metadata_module.PrimitiveMetadata({
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "c7c61da3-cf57-354e-8841-664853370106",
@@ -50,7 +53,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://gitlab.com/datadrivendiscovery/tests-data.git@{git_commit}#subdirectory=primitives'.format(
+            'package_uri': 'git+git://gitlab.com/datadrivendiscovery/tests-data.git@{git_commit}#subdirectory=primitives'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
         }],
