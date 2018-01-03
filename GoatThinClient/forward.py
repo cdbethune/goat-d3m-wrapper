@@ -41,16 +41,19 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             'name': __author__,
             'uris': [
                 # Unstructured URIs. Link to file and link to repo in this case.
-                "https://github.com/NewKnowledge/geocoding-thin-client",
+                'https://gitlab.com/datadrivendiscovery/tests-data/blob/master/primitives/test_primitives/monomial.py',
+                'https://gitlab.com/datadrivendiscovery/tests-data.git',
             ],
         },
         # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
         # Of course Python packages can also have their own dependencies, but sometimes it is necessary to
         # install a Python package first to be even able to run setup.py of another package. Or you have
         # a dependency which is not on PyPi.
-        'installation': [{
+         'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': "git+git://github.com/NewKnowledge/geocoding-thin-client",
+            'package_uri': 'git+https://gitlab.com/datadrivendiscovery/tests-data.git@{git_commit}#subdirectory=primitives'.format(
+                git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+            ),
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.forward',
