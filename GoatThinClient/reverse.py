@@ -62,7 +62,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         'primitive_family': metadata_module.PrimitiveFamily.DATA_CLEANING,
     })
     
-    def __init__(self, address: str, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
+    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)        
         
         self._decoder = JSONDecoder()
