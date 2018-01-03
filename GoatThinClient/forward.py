@@ -27,8 +27,8 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     
-    # make sure to populate this with JSON annotations later
-    metadata = # This should contain only metadata which cannot be automatically determined from the code.
+    # Make sure to populate this with JSON annotations...
+    # This should contain only metadata which cannot be automatically determined from the code.
     metadata = metadata_module.PrimitiveMetadata({
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "c7c61da3-cf57-354e-8841-664853370106",
