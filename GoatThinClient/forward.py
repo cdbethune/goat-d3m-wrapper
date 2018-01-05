@@ -119,7 +119,7 @@ if __name__ == '__main__':
     client = goat(hyperparams={})
     in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
     start = time.time()
-    result = client.produce(list([address,in_str]))
+    result = client.produce(inputs = list([address,in_str]))
     end = time.time()
     print("geocoding "+in_str)
     print("DEBUG::result ([long,lat]):")

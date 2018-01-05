@@ -116,7 +116,7 @@ if __name__ == '__main__':
     print(in_str)
     print("DEBUG::result (dictionary list of size 1):")
     start = time.time()
-    result = client.produce(in_str)
+    result = client.produce(inputs = in_str)
     end = time.time()
     print(result)
     print("time elapsed is (in sec):")
