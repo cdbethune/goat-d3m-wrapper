@@ -110,7 +110,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 
 if __name__ == '__main__':
     address = 'http://localhost:2322/'
-    client = reverse_goat()
+    client = reverse_goat(hyperparams={})
     in_str = list([address,"-0.18","5.6"])
     print("reverse geocoding the coordinates:")
     print(in_str)
