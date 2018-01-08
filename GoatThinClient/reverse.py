@@ -100,7 +100,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         try:
             r = requests.get(inputs[0]+'reverse?lon='+inputs[1]+'&lat='+inputs[2])
             
-            result = self.decoder.decode(r.text)['features'][0]['properties']
+            result = self._decoder.decode(r.text)['features'][0]['properties']
             
             return result
             
