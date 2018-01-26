@@ -50,7 +50,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@{git_commit}'.format(
+            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@{git_commit}#egg=GoatThinClient'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
         }],
