@@ -51,7 +51,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_base.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-d3m-wrapper.git@{git_commit}#egg=GoatThinClient'.format(
+            'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatD3MWrapper'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
         }],
