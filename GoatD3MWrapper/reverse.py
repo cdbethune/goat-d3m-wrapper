@@ -6,9 +6,10 @@ import time
 import typing
 from json import JSONDecoder
 from typing import List, Tuple
-from primitive_interfaces.base import PrimitiveBase, CallResult
 
-from d3m_metadata import container, hyperparams, metadata as metadata_module, params, utils
+from d3m.primitive_interfaces.base import PrimitiveBase, CallResult
+from d3m import container, utils
+from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
 __version__ = '1.0.0'
@@ -30,7 +31,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
-    metadata = metadata_module.PrimitiveMetadata({
+    metadata = metadata_base.PrimitiveMetadata({
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "f6e4880b-98c7-32f0-b687-a4b1d74c8f99",
         'version': __version__,
@@ -49,7 +50,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # install a Python package first to be even able to run setup.py of another package. Or you have
         # a dependency which is not on PyPi.
          'installation': [{
-            'type': metadata_module.PrimitiveInstallationType.PIP,
+            'type': metadata_base.PrimitiveInstallationType.PIP,
             'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatThinClient'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
@@ -59,9 +60,9 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # Choose these from a controlled vocabulary in the schema. If anything is missing which would
         # best describe the primitive, make a merge request.
         'algorithm_types': [
-            metadata_module.PrimitiveAlgorithmType.NUMERICAL_METHOD,
+            metadata_base.PrimitiveAlgorithmType.NUMERICAL_METHOD,
         ],
-        'primitive_family': metadata_module.PrimitiveFamily.DATA_CLEANING,
+        'primitive_family': metadata_base.PrimitiveFamily.DATA_CLEANING,
     })
     
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, volumes: typing.Dict[str, str] = None)-> None:
