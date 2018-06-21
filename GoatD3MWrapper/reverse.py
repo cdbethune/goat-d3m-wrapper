@@ -15,8 +15,8 @@ __author__ = 'Distil'
 __version__ = '1.0.0'
 
 
-Inputs = container.List[str]
-Outputs = container.List[dict]
+Inputs = container.List
+Outputs = container.List
 
 
 class Params(params.Params):

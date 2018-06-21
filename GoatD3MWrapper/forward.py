@@ -15,8 +15,8 @@ __author__ = 'Distil'
 __version__ = '1.0.0'
 
 
-Inputs = container.List[str] #container.pandas.DataFrame
-Outputs = container.List[float]
+Inputs = container.List #container.pandas.DataFrame
+Outputs = container.List
 
 
 class Params(params.Params):
