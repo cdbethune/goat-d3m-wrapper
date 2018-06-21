@@ -100,6 +100,8 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
             
         try:
+            os.system("java -jar "+self.volumes['photon-db-latest']+"photon-0.2.7.jar")
+
             address = 'http://localhost:2322/'
             r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
             
