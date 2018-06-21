@@ -1,4 +1,4 @@
-import os.path
+import os
 import pickle
 import requests
 import ast
@@ -14,7 +14,7 @@ __author__ = 'Distil'
 __version__ = '1.0.0'
 
 
-Inputs = container.List[str]
+Inputs = conatiner.List[str] #container.pandas.DataFrame
 Outputs = container.List[float]
 
 
@@ -41,7 +41,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             'name': __author__,
             'uris': [
                 # Unstructured URIs.
-                "https://github.com/NewKnowledge/geocoding-thin-client",
+                "https://github.com/NewKnowledge/goat-d3m-wrapper",
             ],
         },
         # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
@@ -50,7 +50,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@{git_commit}#egg=GoatThinClient'.format(
+            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-d3m-wrapper.git@{git_commit}#egg=GoatThinClient'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
         }],
@@ -65,11 +65,13 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
     })
 
     
-    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
-        super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)
+    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, volumes: typing.Dict[str, str] = None)-> None:
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
                 
         self._decoder = JSONDecoder()
         self._params = {}
+
+        self.volumes = volumes
         
     def fit(self) -> None:
         pass
@@ -85,11 +87,11 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
-        Accept a location string, process it and return long/lat coordinates.
+        Accept a list of location strings, process it and return list of long/lat coordinates.
         
         Parameters
         ----------
-        inputs : string representing some geographic location (name, address, etc)
+        inputs : strings representing some geographic location (name, address, etc)
         
         timeout : float
             A maximum time this primitive should take to produce outputs during this method call, in seconds.
@@ -100,11 +102,14 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         Returns
         -------
         Outputs
-            A list of 2 floats, [longitude, latitude]
+            Lists of 2 floats, [longitude, latitude]
         """
         
         try:
-            r = requests.get(inputs[0]+'api?q='+inputs[1])
+            os.system("java -jar "+self.volumes['photon-db-latest']+"photon-0.2.7.jar")
+
+            address = 'http://localhost:2322/'
+            r = requests.get(address+'api?q='+inputs[0])
             
             result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
@@ -115,14 +120,14 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
-    address = 'http://localhost:2322/'
+    
     client = goat(hyperparams={})
     in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
     start = time.time()
-    result = client.produce(inputs = list([address,in_str]))
+    result = client.produce(inputs = list([in_str,]))
     end = time.time()
     print("geocoding "+in_str)
-    print("DEBUG::result ([long,lat]):")
+    print("result ([long,lat]):")
     print(result)
     print("time elapsed is (in sec):")
     print(end-start)

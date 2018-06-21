@@ -1,14 +1,14 @@
 from distutils.core import setup
 
-setup(name='Goat',
+setup(name='GoatD3MWrapper',
     version='1.0.0',
     description='A geocoding service from New Knowledge',
-    packages=['GoatThinClient'],
+    packages=['GoatD3MWrapper'],
     install_requires=["requests","typing"],
     entry_points = {
         'd3m.primitives': [
-            'distil.Goat.forward = Goat:goat',
-            'distil.Goat.reverse = Goat:reverse_goat'
+            'distil.Goat.forward = GoatD3MWrapper:goat',
+            'distil.Goat.reverse = GoatD3MWrapper:reverse_goat'
         ],
     },
 )

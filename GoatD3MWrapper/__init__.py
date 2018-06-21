@@ -1,5 +1,5 @@
-from GoatThinClient.forward import goat
-from GoatThinClient.reverse import reverse_goat
+from GoatD3MWrapper.forward import goat
+from GoatD3MWrapper.reverse import reverse_goat
 
 __author__ = 'Distil'
 

@@ -1,4 +1,4 @@
-import os.path
+import os
 import pickle
 import requests
 import ast
@@ -41,7 +41,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             'name': __author__,
             'uris': [
                 # Unstructured URIs.
-                "https://github.com/NewKnowledge/geocoding-thin-client",
+                "https://github.com/NewKnowledge/goat-d3m-wrapper",
             ],
         },
         # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
@@ -50,7 +50,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # a dependency which is not on PyPi.
          'installation': [{
             'type': metadata_module.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/geocoding-thin-client.git@{git_commit}#egg=GoatThinClient'.format(
+            'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatThinClient'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
         }],
@@ -64,11 +64,13 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         'primitive_family': metadata_module.PrimitiveFamily.DATA_CLEANING,
     })
     
-    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, docker_containers: typing.Dict[str, str] = None)-> None:
-        super().__init__(hyperparams=hyperparams, random_seed=random_seed, docker_containers=docker_containers)        
+    def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, volumes: typing.Dict[str, str] = None)-> None:
+        super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)        
         
         self._decoder = JSONDecoder()
         self._params = {}
+
+        self.volumes = volumes
         
     def fit(self) -> None:
         pass
@@ -98,7 +100,8 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
             
         try:
-            r = requests.get(inputs[0]+'reverse?lon='+inputs[1]+'&lat='+inputs[2])
+            address = 'http://localhost:2322/'
+            r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
             
             result = self._decoder.decode(r.text)['features'][0]['properties']
             
@@ -109,12 +112,11 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
-    address = 'http://localhost:2322/'
     client = reverse_goat(hyperparams={})
-    in_str = list([address,"-0.18","5.6"])
+    in_str = list(["-0.18","5.6"])
     print("reverse geocoding the coordinates:")
     print(in_str)
-    print("DEBUG::result (dictionary list of size 1):")
+    print("result (dictionary list of size 1):")
     start = time.time()
     result = client.produce(inputs = in_str)
     end = time.time()
