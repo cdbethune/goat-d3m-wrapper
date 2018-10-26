@@ -121,7 +121,8 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
-    
+    volumes = {} # d3m large primitive architecture dict of large files
+    volumes["photon-db-latest"] = "/geocodingdata/"
     client = goat(hyperparams={})
     in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
     start = time.time()
