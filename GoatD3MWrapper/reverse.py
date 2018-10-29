@@ -1,7 +1,6 @@
 import os
-import pickle
+import subprocess
 import requests
-import ast
 import time
 import typing
 from json import JSONDecoder
@@ -12,11 +11,11 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
-Inputs = container.List
-Outputs = container.List
+Inputs = container.List #container.pandas.DataFrame
+Outputs = container.List #container.pandas.DataFrame
 
 
 class Params(params.Params):
@@ -101,11 +100,11 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
             
         try:
-            os.system("java -jar "+self.volumes['photon-db-latest']+"photon-0.2.7.jar")
-
+            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            time.sleep(10)
             address = 'http://localhost:2322/'
             r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
-            
+            # return the top result at that location!!
             result = self._decoder.decode(r.text)['features'][0]['properties']
             
             return result
@@ -115,7 +114,10 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
-    client = reverse_goat(hyperparams={})
+    volumes = {} # d3m large primitive architecture dict of large files
+    volumes["photon-db-latest"] = "/geocodingdata/"
+    from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
+    client = reverse_goat(hyperparams={},volumes=volumes)
     in_str = list(["-0.18","5.6"])
     print("reverse geocoding the coordinates:")
     print(in_str)
