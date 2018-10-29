@@ -117,7 +117,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 
             result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
-        return result
+            return result
             
         except:
             # Should probably do some more sophisticated error logging here
