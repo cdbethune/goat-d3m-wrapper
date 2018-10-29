@@ -108,8 +108,8 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
         
         try:
-            PopenObj = subprocess.Popen("cd "+self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &",shell=True)
-            
+            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            time.sleep(5)
             address = 'http://localhost:2322/'
             r = requests.get(address+'api?q='+inputs[0])
 
