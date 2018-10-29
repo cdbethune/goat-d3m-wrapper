@@ -99,19 +99,23 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             a dictionary in GeoJSON format (sub-dictionary 'features/0/properties' to be precise)
         """
             
-        try:
-            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            time.sleep(10)
-            address = 'http://localhost:2322/'
-            r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
-            # return the top result at that location!!
-            result = self._decoder.decode(r.text)['features'][0]['properties']
+        # try:
+        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        time.sleep(10)
+        address = 'http://localhost:2322/'
+        print("before requests.get")
+        r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
+        print("after...")
+        # need to cleanup by closing the server when done...
+        PopenObj.kill()
+        # return the top result at that location!!
+        result = self._decoder.decode(r.text)['features'][0]['properties']
             
-            return result
+        return result
             
-        except:
+        # except:
             # Should probably do some more sophisticated error logging here
-            return "Failed GET request to photon server, please try again..."
+            # return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
