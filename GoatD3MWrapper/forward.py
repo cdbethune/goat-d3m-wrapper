@@ -114,7 +114,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             r = requests.get(address+'api?q='+inputs[0])
 
             # need to cleanup by closing the server when done...
-            PopenObj.kill()
+            #PopenObj.kill()
             
             result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
