@@ -108,14 +108,13 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
         
         try:
-            subprocess.Popen("echo starting geocoding server...;cd "
-            +self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &;echo server running!",
-            shell=True)
+            PopenObj = subprocess.Popen("cd "+self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &",shell=True)1afp
             
             address = 'http://localhost:2322/'
             r = requests.get(address+'api?q='+inputs[0])
 
-            # need to cleanup by closing the server somehow...
+            # need to cleanup by closing the server when done...
+            PopenObj.kill()
             
             result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
@@ -128,7 +127,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
-    client = goat(hyperparams={})
+    client = goat(hyperparams={},volumes=volumes)
     in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
     start = time.time()
     result = client.produce(inputs = list([in_str,]))
