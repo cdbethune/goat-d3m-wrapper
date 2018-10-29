@@ -15,7 +15,7 @@ __version__ = '1.0.1'
 
 
 Inputs = container.List #container.pandas.DataFrame
-Outputs = container.List
+Outputs = container.List #container.pandas.DataFrame
 
 
 class Params(params.Params):
