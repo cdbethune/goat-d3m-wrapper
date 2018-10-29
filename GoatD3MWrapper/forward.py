@@ -1,4 +1,5 @@
 import os
+import subprocess
 import pickle
 import requests
 import ast
@@ -107,10 +108,14 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
         
         try:
-            os.system("java -jar "+self.volumes['photon-db-latest']+"photon-0.2.7.jar")
-
+            subprocess.Popen("echo starting geocoding server...;cd "
+            +self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &;echo server running!",
+            shell=True)
+            
             address = 'http://localhost:2322/'
             r = requests.get(address+'api?q='+inputs[0])
+
+            # need to cleanup by closing the server somehow...
             
             result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
