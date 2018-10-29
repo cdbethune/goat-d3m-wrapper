@@ -111,15 +111,14 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         print("before Popen")
         PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         print("after Popen")
-        time.sleep(20)
+        time.sleep(60)
         print("after sleep")
         address = 'http://localhost:2322/'
         r = requests.get(address+'api?q='+inputs[0])
         print("after requests.get")
         # need to cleanup by closing the server when done...
-        #PopenObj.kill()
-
         time.sleep(10)
+        PopenObj.kill()
 
         print(r.text)
             
