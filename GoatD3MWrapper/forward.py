@@ -118,6 +118,10 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         print("after requests.get")
         # need to cleanup by closing the server when done...
         #PopenObj.kill()
+
+        time.sleep(10)
+
+        print(r.text)
             
         result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
