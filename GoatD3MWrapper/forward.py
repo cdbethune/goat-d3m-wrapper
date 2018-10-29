@@ -111,7 +111,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         print("before Popen")
         PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         print("after Popen")
-        time.sleep(10)
+        time.sleep(20)
         print("after sleep")
         address = 'http://localhost:2322/'
         r = requests.get(address+'api?q='+inputs[0])
@@ -130,7 +130,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
-    # from d3m.primitives.distil.Goat import forward as goat # from of import
+    # from d3m.primitives.distil.Goat import forward as goat # form of import
     client = goat(hyperparams={},volumes=volumes)
     in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc.
     start = time.time()
