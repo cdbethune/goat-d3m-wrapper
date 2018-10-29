@@ -109,7 +109,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         
         # try:
         print("before Popen")
-        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         print("after Popen")
         time.sleep(5)
         print("after sleep")
