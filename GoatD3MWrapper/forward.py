@@ -116,6 +116,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         address = 'http://localhost:2322/'
         r = requests.get(address+'api?q='+inputs[0])
         print("after requests.get")
+        print(inputs[0])
         # need to cleanup by closing the server when done...
         time.sleep(10)
         PopenObj.kill()
