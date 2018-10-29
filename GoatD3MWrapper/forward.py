@@ -108,7 +108,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         """
         
         try:
-            PopenObj = subprocess.Popen("cd "+self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &",shell=True)1afp
+            PopenObj = subprocess.Popen("cd "+self.volumes['photon-db-latest']+";java -jar photon-0.2.7.jar &",shell=True)
             
             address = 'http://localhost:2322/'
             r = requests.get(address+'api?q='+inputs[0])
