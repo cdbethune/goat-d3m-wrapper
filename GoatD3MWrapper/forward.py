@@ -13,7 +13,7 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 
 Inputs = container.List #container.pandas.DataFrame
@@ -127,8 +127,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
+    # from d3m.primitives.distil.Goat import forward as goat # from of import
     client = goat(hyperparams={},volumes=volumes)
-    in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc
+    in_str = '3810 medical pkwy, austin, tx' # addresses work! so does 'austin', etc.
     start = time.time()
     result = client.produce(inputs = list([in_str,]))
     end = time.time()
