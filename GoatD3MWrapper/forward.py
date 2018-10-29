@@ -107,29 +107,21 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             Lists of 2 floats, [longitude, latitude]
         """
         
-        # try:
-        print("before Popen")
-        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        print("after Popen")
-        time.sleep(20)
-        print("after sleep")
-        address = 'http://localhost:2322/'
-        r = requests.get(address+'api?q='+inputs[0])
-        print("after requests.get")
-        print(inputs[0])
-        # need to cleanup by closing the server when done...
-        #time.sleep(10)
-        PopenObj.kill()
+        try:
+            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            time.sleep(20)
+            address = 'http://localhost:2322/'
+            r = requests.get(address+'api?q='+inputs[0])
+            # need to cleanup by closing the server when done...
+            PopenObj.kill()
 
-        print(r.text)
-            
-        result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
+            result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
             
         return result
             
-        # except:
+        except:
             # Should probably do some more sophisticated error logging here
-            # return "Failed GET request to photon server, please try again..."
+            return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
