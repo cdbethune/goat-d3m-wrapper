@@ -111,7 +111,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # return the top result at that location!!
         result=[]
         tmp = self._decoder.decode(r.text)
-        if tmp:
+        if tmp['features']:
             result = tmp['features'][0]['properties']
             
         return result
