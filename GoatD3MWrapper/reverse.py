@@ -122,7 +122,7 @@ if __name__ == '__main__':
     volumes["photon-db-latest"] = "/geocodingdata/"
     from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
     client = reverse_goat(hyperparams={},volumes=volumes)
-    in_str = list(["-0.18","5.6"])
+    in_str = list(["-97.59","30.35"])
     print("reverse geocoding the coordinates:")
     print(in_str)
     print("result (dictionary list of size 1):")
