@@ -116,9 +116,9 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             
         return result
             
-        # except:
+        except:
             # Should probably do some more sophisticated error logging here
-            # return "Failed GET request to photon server, please try again..."
+            return "Failed GET request to photon server, please try again..."
 
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
@@ -128,7 +128,7 @@ if __name__ == '__main__':
     in_str = list(["-97.59","30.35"])
     print("reverse geocoding the coordinates:")
     print(in_str)
-    print("result (dictionary list of size 1):")
+    print("result (dictionary list of size 0 - if nothing found - or 1):")
     start = time.time()
     result = client.produce(inputs = in_str)
     end = time.time()

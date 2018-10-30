@@ -112,14 +112,16 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             r = requests.get(address+'api?q='+inputs[0])
             # need to cleanup by closing the server when done...
             PopenObj.kill()
-
-            result = self._decoder.decode(r.text)['features'][0]['geometry']['coordinates']
+            result=[]
+            tmp = self._decoder.decode(r.text)
+            if tmp['features']:
+                result = tmp['features'][0]['geometry']['coordinates']
             
             return result
             
         except:
             # Should probably do some more sophisticated error logging here
-            return "Failed GET request to photon server, please try again..."
+            return "Failed GET request to photon server, is the photon server already running?"
 
 if __name__ == '__main__':
     volumes = {} # d3m large primitive architecture dict of large files
