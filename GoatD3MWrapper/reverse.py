@@ -109,7 +109,10 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
         # return the top result at that location!!
-        result = self._decoder.decode(r.text)['features'][0]['properties']
+        result=[]
+        tmp = self._decoder.decode(r.text)
+        if tmp:
+            result = tmp['features'][0]['properties']
             
         return result
             
