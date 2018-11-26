@@ -65,6 +65,12 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatD3MWrapper'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
+        },
+        {
+            "type": "TGZ",
+            "key": "photon-db-latest",
+            "file_uri": "http://public.datadrivendiscovery.org/photon-db-latest.tar.gz",
+            "file_digest":"c0e112493d796f472f5fe35087eac695d2845ace08b1fe825a0a0328caaf9dfc"
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.reverse',
@@ -127,7 +133,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
                 r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
                 tmp = self._decoder.decode(r.text)
                 if tmp['features']:
-                    out_df.ix[j,i] = tmp['features'][0]['properties']
+                    out_df.ix[j,i] = tmp['features'][0]['properties']['name']
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
@@ -140,7 +146,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
     volumes = {} # d3m large primitive architecture dict of large files
-    volumes["photon-db-latest"] = "/geocodingdata/"
+    volumes["photon-db-latest"] = "/geocodingdata"
     from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
     client = reverse_goat(hyperparams={'target_columns':['Long/Lat'],'rampup':8},volumes=volumes)
     print("reverse geocoding...")

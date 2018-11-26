@@ -65,6 +65,12 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatD3MWrapper'.format(
                 git_commit=utils.current_git_commit(os.path.dirname(__file__)),
             ),
+        },
+        {
+            "type": "TGZ",
+            "key": "photon-db-latest",
+            "file_uri": "http://public.datadrivendiscovery.org/photon-db-latest.tar.gz",
+            "file_digest":"c0e112493d796f472f5fe35087eac695d2845ace08b1fe825a0a0328caaf9dfc"
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.forward',
@@ -146,7 +152,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
     volumes = {} # d3m large primitive architecture dict of large files
-    volumes["photon-db-latest"] = "/geocodingdata/"
+    volumes["photon-db-latest"] = "/geocodingdata"
     from d3m.primitives.distil.Goat import forward as goat # form of import
     client = goat(hyperparams={'target_columns':['Location'],'rampup':8},volumes=volumes)
     start = time.time()
