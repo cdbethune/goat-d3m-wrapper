@@ -70,7 +70,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             "type": "TGZ",
             "key": "photon-db-latest",
             "file_uri": "http://public.datadrivendiscovery.org/photon-db-latest.tar.gz",
-            "file_digest":"c0e112493d796f472f5fe35087eac695d2845ace08b1fe825a0a0328caaf9dfc"
+            "file_digest":"7690aa52af17d63bf1380862fbc5270043ffea264a04f1e1ac4a590229cc615a"
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.reverse',
@@ -138,8 +138,8 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
 
-        print("DEBUG::out_df")
-        print(out_df)
+        # print("DEBUG::out_df")
+        # print(out_df)
 
         return CallResult(out_df)
     
