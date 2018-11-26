@@ -1,5 +1,7 @@
 import os
+import sys
 import subprocess
+import pandas as pd
 import requests
 import time
 import typing
@@ -11,11 +13,11 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
-Inputs = container.List #container.pandas.DataFrame
-Outputs = container.List #container.pandas.DataFrame
+Inputs = container.pandas.DataFrame
+Outputs = container.pandas.DataFrame
 
 
 class Params(params.Params):
@@ -23,7 +25,17 @@ class Params(params.Params):
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    pass
+    target_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[str](''),
+        default=(),
+        max_size=sys.maxsize,
+        min_size=0,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='names of columns with image paths'
+    ),
+    rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
+        'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
 
 
 class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
@@ -86,49 +98,52 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
-        Accept a lat/long pair, process it and return corresponding geographic location (as GeoJSON dict,
-        see geojson).
+        Accept a set of lat/long pair, processes it and returns a set corresponding geographic location names
         
         Parameters
         ----------
-        inputs : List of 2 coordinate float values, i.e., [longitude,latitude]
+        inputs : pandas dataframe containing 2 coordinate float values, i.e., [longitude,latitude] 
+                 representing each geographic location of interest - a pair of values
+                 per location/row in the specified target column
 
         Returns
         -------
         Outputs
-            a dictionary in GeoJSON format (sub-dictionary 'features/0/properties' to be precise)
+            Pandas dataframe containing one location per longitude/latitude pair (if reverse
+            geocoding possible, otherwise NaNs)
         """
-            
-        try:
-            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            time.sleep(10)
-            address = 'http://localhost:2322/'
-            r = requests.get(address+'reverse?lon='+inputs[0]+'&lat='+inputs[1])
-            # need to cleanup by closing the server when done...
-            PopenObj.kill()
-            # return the top result at that location!!
-            result=[]
-            tmp = self._decoder.decode(r.text)
-            if tmp['features']:
-                result = tmp['features'][0]['properties']
-            
-            return result
-            
-        except:
-            # Should probably do some more sophisticated error logging here
-            return "Failed GET request to photon server, is the photon server already running?"
+        target_columns = self.hyperparams['target_columns']
+        rampup = self.hyperparams['rampup']
+        frame = inputs
+        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=['[long,lat]','location'])
+        
+        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        time.sleep(rampup)
+        address = 'http://localhost:2322/'
+        # reverse-geocode each requested location
+        for i,ith_column in enumerate(target_columns):
+            j = 0
+            for longlat in frame.ix[:,ith_column]:
+                r = requests.get(address+'reverse?lon='+longlat[0]+'&lat='+longlat[1])
+                tmp = self._decoder.decode(r.text)
+                if tmp['features']:
+                    out_df.ix[j,i] = tmp['features'][0]['properties']
+                j=j+1
+        # need to cleanup by closing the server when done...
+        PopenObj.kill()
 
+        return CallResult(out_df)
+    
 if __name__ == '__main__':
+    input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':['Austin','New York City']})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
     from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
-    client = reverse_goat(hyperparams={},volumes=volumes)
-    in_str = list(["-97.59","30.35"])
-    print("reverse geocoding the coordinates:")
-    print(in_str)
-    print("result (dictionary list of size 0 - if nothing found - or 1):")
+    client = reverse_goat(hyperparams={'target_columns':['Long/Lat'],'rampup':8},volumes=volumes)
+    print("reverse geocoding...")
+    print("result:")
     start = time.time()
-    result = client.produce(inputs = in_str)
+    result = client.produce(inputs = input_df)
     end = time.time()
     print(result)
     print("time elapsed is (in sec):")

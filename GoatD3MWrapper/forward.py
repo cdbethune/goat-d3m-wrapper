@@ -99,7 +99,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
-        Accept a list of location strings, process it and return list of long/lat coordinates.
+        Accept a set of location strings, processes it and returns a set of long/lat coordinates.
         
         Parameters
         ----------
@@ -137,14 +137,14 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
 
-        return CallResult(result)
+        return CallResult(out_df)
 
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
     from d3m.primitives.distil.Goat import forward as goat # form of import
-    client = goat(hyperparams={'target_columns':['Location'],'rampup':[8]},volumes=volumes)
+    client = goat(hyperparams={'target_columns':['Location'],'rampup':8},volumes=volumes)
     start = time.time()
     result = client.produce(inputs = input_df)
     end = time.time()
