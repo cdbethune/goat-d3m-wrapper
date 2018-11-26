@@ -115,7 +115,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         target_columns = self.hyperparams['target_columns']
         rampup = self.hyperparams['rampup']
         frame = inputs
-        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=['[long,lat]','location'])
+        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
         
         PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
@@ -132,10 +132,13 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
 
+        print("DEBUG::out_df")
+        print(out_df)
+
         return CallResult(out_df)
     
 if __name__ == '__main__':
-    input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':['Austin','New York City']})
+    input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
     from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import

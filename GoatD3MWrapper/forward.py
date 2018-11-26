@@ -120,7 +120,8 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         target_columns = self.hyperparams['target_columns']
         rampup = self.hyperparams['rampup']
         frame = inputs
-        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=['location','[long,lat]'])
+        # for now, just one target column is handled
+        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
         
         PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
