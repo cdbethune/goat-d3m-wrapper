@@ -137,6 +137,9 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
 
+        print("DEBUG::out_df")
+        print(out_df)
+
         return CallResult(out_df)
 
 if __name__ == '__main__':
