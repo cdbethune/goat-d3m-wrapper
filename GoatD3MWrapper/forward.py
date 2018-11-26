@@ -122,27 +122,22 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         frame = inputs
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=['location','[long,lat]'])
         
-        try:
-            PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            time.sleep(rampup)
-            address = 'http://localhost:2322/'
-            # geocode each requested location
-            for i,ith_column in enumerate(target_columns):
-                j = 0
-                for location in frame.ix[:,ith_column]:
-                    r = requests.get(address+'api?q='+location)
-                    tmp = self._decoder.decode(r.text)
-                    if tmp['features']:
-                        out_df.ix[j,i] = tmp['features'][0]['geometry']['coordinates']
-                    j=j+1
-            # need to cleanup by closing the server when done...
-            PopenObj.kill()
+        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        time.sleep(rampup)
+        address = 'http://localhost:2322/'
+        # geocode each requested location
+        for i,ith_column in enumerate(target_columns):
+            j = 0
+            for location in frame.ix[:,ith_column]:
+                r = requests.get(address+'api?q='+location)
+                tmp = self._decoder.decode(r.text)
+                if tmp['features']:
+                    out_df.ix[j,i] = tmp['features'][0]['geometry']['coordinates']
+                j=j+1
+        # need to cleanup by closing the server when done...
+        PopenObj.kill()
 
-            return CallResult(result)
-            
-        except:
-            # Should probably do some more sophisticated error logging here
-            return "Failed GET request to photon server, is the photon server already running?"
+        return CallResult(result)
 
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
