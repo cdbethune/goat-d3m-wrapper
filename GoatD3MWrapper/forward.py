@@ -149,7 +149,7 @@ if __name__ == '__main__':
     from d3m.primitives.distil.Goat import forward as goat # form of import
     client = goat(hyperparams={'target_columns':['Location'],'rampup':[8]},volumes=volumes)
     start = time.time()
-    result = client.produce(inputs = input_df))
+    result = client.produce(inputs = input_df)
     end = time.time()
     print("geocoding...")
     print("result:")
