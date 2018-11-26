@@ -11,11 +11,11 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 
-Inputs = container.List #container.pandas.DataFrame
-Outputs = container.List #container.pandas.DataFrame
+Inputs = container.pandas.DataFrame
+Outputs = container.pandas.DataFrame
 
 
 class Params(params.Params):
@@ -23,7 +23,17 @@ class Params(params.Params):
 
 
 class Hyperparams(hyperparams.Hyperparams):
-    pass
+    target_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[str](''),
+        default=(),
+        max_size=sys.maxsize,
+        min_size=0,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='names of columns with image paths'
+    ),
+    rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
+        'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
+        description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
 
 
 class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
@@ -91,7 +101,8 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         
         Parameters
         ----------
-        inputs : strings representing some geographic location (name, address, etc)
+        inputs : pandas dataframe containing strings representing some geographic locations -
+                 (name, address, etc) - one location per row in the specified target column
         
         timeout : float
             A maximum time this primitive should take to produce outputs during this method call, in seconds.
@@ -102,38 +113,46 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         Returns
         -------
         Outputs
-            Lists of 2 floats, [longitude, latitude]
+            Pandas dataframe, with a List of 2 floats [longitude, latitude] per row/location
         """
+        target_columns = self.hyperparams['target_columns']
+        rampup = self.hyperparams['rampup']
+        frame = inputs
+        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=['location','[long,lat]'])
         
         try:
             PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            time.sleep(10)
+            time.sleep(rampup)
             address = 'http://localhost:2322/'
-            r = requests.get(address+'api?q='+inputs[0])
+            # geocode each requested location
+            for i,ith_column in enumerate(target_columns):
+                j = 0
+                for location in frame.ix[:,ith_column]:
+                    r = requests.get(address+'api?q='+location)
+                    tmp = self._decoder.decode(r.text)
+                    if tmp['features']:
+                        out_df.ix[j,i] = tmp['features'][0]['geometry']['coordinates']
+                    j=j+1
             # need to cleanup by closing the server when done...
             PopenObj.kill()
-            result=[]
-            tmp = self._decoder.decode(r.text)
-            if tmp['features']:
-                result = tmp['features'][0]['geometry']['coordinates']
-            
-            return result
+
+            return CallResult(result)
             
         except:
             # Should probably do some more sophisticated error logging here
             return "Failed GET request to photon server, is the photon server already running?"
 
 if __name__ == '__main__':
+    input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata/"
     from d3m.primitives.distil.Goat import forward as goat # form of import
-    client = goat(hyperparams={},volumes=volumes)
-    in_str = 'Austin, tx' # addresses work! so does 'austin', etc.
+    client = goat(hyperparams={'target_columns':['Location'],'rampup':[8]},volumes=volumes)
     start = time.time()
-    result = client.produce(inputs = list([in_str,]))
+    result = client.produce(inputs = input_df))
     end = time.time()
-    print("geocoding "+in_str)
-    print("result ([long,lat]):")
+    print("geocoding...")
+    print("result:")
     print(result)
     print("time elapsed is (in sec):")
     print(end-start)
