@@ -124,7 +124,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         for i,ith_column in enumerate(target_columns):
             j = 0
             for longlat in frame.ix[:,ith_column]:
-                r = requests.get(address+'reverse?lon='+longlat[0]+'&lat='+longlat[1])
+                r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
                 tmp = self._decoder.decode(r.text)
                 if tmp['features']:
                     out_df.ix[j,i] = tmp['features'][0]['properties']
