@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='GoatD3MWrapper',
-    version='1.0.1',
+    version='1.0.3',
     description='A geocoding service from New Knowledge',
     packages=['GoatD3MWrapper'],
     install_requires=["requests","typing"],
