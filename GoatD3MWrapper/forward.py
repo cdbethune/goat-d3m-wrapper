@@ -13,7 +13,7 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
 __author__ = 'Distil'
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 
 Inputs = container.pandas.DataFrame
@@ -69,7 +69,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         {
             "type": "TGZ",
             "key": "photon-db-latest",
-            "file_uri": "http://public.datadrivendiscovery.org/photon-db-latest.tar.gz",
+            "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
             "file_digest":"7690aa52af17d63bf1380862fbc5270043ffea264a04f1e1ac4a590229cc615a"
         }],
         # The same path the primitive is registered with entry points in setup.py.
