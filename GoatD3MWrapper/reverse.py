@@ -146,7 +146,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
     volumes = {} # d3m large primitive architecture dict of large files
-    volumes["photon-db-latest"] = "/geocodingdata"
+    volumes["photon-db"] = "/geocodingdata"
     from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
     client = reverse_goat(hyperparams={'target_columns':['Long/Lat'],'rampup':8},volumes=volumes)
     print("reverse geocoding...")
