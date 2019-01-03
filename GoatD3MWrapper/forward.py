@@ -70,7 +70,7 @@ class goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
             "type": "TGZ",
             "key": "photon-db-latest",
             "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
-            "file_digest":"7690aa52af17d63bf1380862fbc5270043ffea264a04f1e1ac4a590229cc615a"
+            "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
         'python_path': 'd3m.primitives.distil.Goat.forward',
