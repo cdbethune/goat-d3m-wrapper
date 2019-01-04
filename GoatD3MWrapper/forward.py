@@ -136,7 +136,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
             col_dict['structural_type'] = type("it is a string")
             col_dict['name'] = target_columns[i]
-            col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
+            col_dict['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/FloatVector', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
 
         return CallResult(d3m_df)
