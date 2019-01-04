@@ -3,7 +3,7 @@ Thin-client for interacting with photon (based on OpenStreetMap) java server run
 
 At the bottom of `goat/forward.py` and `goat/reverse.py` are included specific examples on how to achieve geocoding or reverse geocoding on localhost.
 
-Simply execute the following command at top level, with the photon server running:
+Simply execute the following command at top level (it will launch the photon server, and geocode the info in the main):
 
 ```bash
 python3 goat/forward.py
