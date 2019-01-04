@@ -12,6 +12,10 @@ from d3m.primitive_interfaces.base import PrimitiveBase, CallResult
 from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
+from d3m.container import DataFrame as d3m_DataFrame
+from common_primitives import utils as utils_cp
+
+
 __author__ = 'Distil'
 __version__ = '1.0.3'
 
@@ -118,11 +122,17 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
+        # Build d3m-type dataframe
+        d3m_df = d3m_DataFrame(out_df)
+        for i,ith_column in enumerate(target_columns):
+            # for every column
+            col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
+            col_dict['structural_type'] = type("it is a string")
+            col_dict['name'] = target_columns[i]
+            col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
+            d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
 
-        # print("DEBUG::out_df")
-        # print(out_df)
-
-        return CallResult(out_df)
+        return CallResult(d3m_df)
     
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
