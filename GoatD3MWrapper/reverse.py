@@ -8,7 +8,8 @@ import typing
 from json import JSONDecoder
 from typing import List, Tuple
 
-from d3m.primitive_interfaces.base import PrimitiveBase, CallResult
+from d3m.primitive_interfaces.transformer import TransformerPrimitiveBase
+from d3m.primitive_interfaces.base import CallResult
 from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base, params
 
