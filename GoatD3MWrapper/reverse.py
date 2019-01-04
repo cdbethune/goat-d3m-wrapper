@@ -19,11 +19,6 @@ __version__ = '1.0.3'
 Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
-
-class Params(params.Params):
-    pass
-
-
 class Hyperparams(hyperparams.Hyperparams):
     target_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[str](''),
@@ -38,7 +33,7 @@ class Hyperparams(hyperparams.Hyperparams):
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
 
 
-class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
+class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
@@ -86,21 +81,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)        
         
         self._decoder = JSONDecoder()
-        self._params = {}
-
         self.volumes = volumes
-        
-    def fit(self) -> None:
-        pass
-    
-    def get_params(self) -> Params:
-        return self._params
-
-    def set_params(self, *, params: Params) -> None:
-        self._params = params
-        
-    def set_training_data(self, *, inputs: Inputs, outputs: Outputs) -> None:
-        pass
         
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
@@ -123,7 +104,7 @@ class reverse_goat(PrimitiveBase[Inputs, Outputs, Params, Hyperparams]):
         frame = inputs
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
         
-        PopenObj = subprocess.Popen(["java","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
         address = 'http://localhost:2322/'
         # reverse-geocode each requested location
