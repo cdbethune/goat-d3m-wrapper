@@ -125,7 +125,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 r = requests.get(address+'api?q='+location)
                 tmp = self._decoder.decode(r.text)
                 if tmp['features']:
-                    out_df.ix[j,i] = tmp['features'][0]['geometry']['coordinates']
+                    out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
