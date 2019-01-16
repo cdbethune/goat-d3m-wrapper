@@ -4,7 +4,7 @@ setup(name='GoatD3MWrapper',
     version='1.0.3',
     description='A geocoding service from New Knowledge',
     packages=['GoatD3MWrapper'],
-    install_requires=["requests","typing"],
+    install_requires=["requests","typing","collections"],
     entry_points = {
         'd3m.primitives': [
             'distil.Goat.forward = GoatD3MWrapper:goat',

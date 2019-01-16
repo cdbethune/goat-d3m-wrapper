@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import collections
 import pandas as pd
 import requests
 import time
@@ -109,12 +110,35 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         Outputs
             Pandas dataframe, with a List of 2 floats [longitude, latitude] per row/location
         """
+        # LRU Cache helper class
+        class LRUCache:
+            def __init__(self, capacity):
+                self.capacity = capacity
+                self.cache = collections.OrderedDict()
+
+            def get(self, key):
+                try:
+                    value = self.cache.pop(key)
+                    self.cache[key] = value
+                    return value
+                except KeyError:
+                    return -1
+
+            def set(self, key, value):
+                try:
+                    self.cache.pop(key)
+                except KeyError:
+                    if len(self.cache) >= self.capacity:
+                        self.cache.popitem(last=False)
+                self.cache[key] = value
+
+        goat_cache = LRUCache(10)
         target_columns = self.hyperparams['target_columns']
         rampup = self.hyperparams['rampup']
         frame = inputs
         # for now, just one target column is handled
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
-        
+        # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
         address = 'http://localhost:2322/'
@@ -122,10 +146,15 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         for i,ith_column in enumerate(target_columns):
             j = 0
             for location in frame.ix[:,ith_column]:
-                r = requests.get(address+'api?q='+location)
-                tmp = self._decoder.decode(r.text)
-                if tmp['features']:
-                    out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
+                cache_ret = goat_cache.get(location)
+                if(cache_ret==-1):
+                    r = requests.get(address+'api?q='+location)
+                    tmp = self._decoder.decode(r.text)
+                    if tmp['features'][0]['geometry']['coordinates']:
+                        out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
+                    goat_cache.set(location,out_df.ix[j,i])
+                else:
+                    out_df.ix[j,i] = cache_ret
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()

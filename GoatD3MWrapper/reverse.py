@@ -108,7 +108,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         rampup = self.hyperparams['rampup']
         frame = inputs
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
-        
+        # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
         address = 'http://localhost:2322/'
@@ -118,7 +118,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             for longlat in frame.ix[:,ith_column]:
                 r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
                 tmp = self._decoder.decode(r.text)
-                if tmp['features']:
+                if tmp['features'][0]['properties']['name']:
                     out_df.ix[j,i] = tmp['features'][0]['properties']['name']
                 j=j+1
         # need to cleanup by closing the server when done...
