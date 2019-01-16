@@ -132,11 +132,10 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                         self.cache.popitem(last=False)
                 self.cache[key] = value
 
-        goat_cache = LRUCache(10)
+        goat_cache = LRUCache(10) # should length be a hyper-parameter?
         target_columns = self.hyperparams['target_columns']
         rampup = self.hyperparams['rampup']
         frame = inputs
-        # for now, just one target column is handled
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
         # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)

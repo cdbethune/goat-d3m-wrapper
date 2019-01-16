@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import collections
 import pandas as pd
 import requests
 import time
@@ -104,6 +105,29 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             Pandas dataframe containing one location per longitude/latitude pair (if reverse
             geocoding possible, otherwise NaNs)
         """
+        # LRU Cache helper class
+        class LRUCache:
+            def __init__(self, capacity):
+                self.capacity = capacity
+                self.cache = collections.OrderedDict()
+
+            def get(self, key):
+                try:
+                    value = self.cache.pop(key)
+                    self.cache[key] = value
+                    return value
+                except KeyError:
+                    return -1
+
+            def set(self, key, value):
+                try:
+                    self.cache.pop(key)
+                except KeyError:
+                    if len(self.cache) >= self.capacity:
+                        self.cache.popitem(last=False)
+                self.cache[key] = value
+
+        goat_cache = LRUCache(10) # should length be a hyper-parameter?
         target_columns = self.hyperparams['target_columns']
         rampup = self.hyperparams['rampup']
         frame = inputs
@@ -116,10 +140,15 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         for i,ith_column in enumerate(target_columns):
             j = 0
             for longlat in frame.ix[:,ith_column]:
-                r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
-                tmp = self._decoder.decode(r.text)
-                if tmp['features'][0]['properties']['name']:
-                    out_df.ix[j,i] = tmp['features'][0]['properties']['name']
+                cache_ret = goat_cache.get(longlat)
+                if(cache_ret==-1):
+                    r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
+                    tmp = self._decoder.decode(r.text)
+                    if tmp['features'][0]['properties']['name']:
+                        out_df.ix[j,i] = tmp['features'][0]['properties']['name']
+                    goat_cache.set(longlat,out_df.ix[j,i])
+                else:
+                    out_df.ix[j,i] = cache_ret
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
