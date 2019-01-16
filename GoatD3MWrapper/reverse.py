@@ -18,7 +18,7 @@ from common_primitives import utils as utils_cp
 
 
 __author__ = 'Distil'
-__version__ = '1.0.3'
+__version__ = '1.0.4'
 
 
 Inputs = container.pandas.DataFrame
