@@ -50,7 +50,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "f6e4880b-98c7-32f0-b687-a4b1d74c8f99",
         'version': __version__,
-        'name': "Goat.reverse",
+        'name': "Goat_reverse",
         # Keywords do not have a controlled vocabulary. Authors can put here whatever they find suitable.
         'keywords': ['Reverse Geocoder'],
         'source': {
@@ -78,7 +78,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
-        'python_path': 'd3m.primitives.data_cleaning.multitable_featurization.Goat.reverse',
+        'python_path': 'd3m.primitives.data_cleaning.multitable_featurization.Goat_reverse',
         # Choose these from a controlled vocabulary in the schema. If anything is missing which would
         # best describe the primitive, make a merge request.
         'algorithm_types': [
