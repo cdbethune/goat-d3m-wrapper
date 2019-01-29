@@ -15,11 +15,13 @@ from d3m import container, utils
 from d3m.metadata import hyperparams, base as metadata_base
 
 from d3m.container import DataFrame as d3m_DataFrame
+from d3m.container import List as d3m_List
 from common_primitives import utils as utils_cp
 
 
 __author__ = 'Distil'
-__version__ = '1.0.4'
+__version__ = '1.0.5'
+__contact__ = 'mailto:paul@newknowledge.io'
 
 
 Inputs = container.pandas.DataFrame
@@ -40,6 +42,9 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
+    """
+        Geocode all names of locations in specified columns into lat/long pairs. 
+    """
     
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
@@ -47,11 +52,12 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
         'id': "c7c61da3-cf57-354e-8841-664853370106",
         'version': __version__,
-        'name': "Goat.forward",
+        'name': "Goat_forward",
         # Keywords do not have a controlled vocabulary. Authors can put here whatever they find suitable.
         'keywords': ['Geocoder'],
         'source': {
             'name': __author__,
+            'contact': __contact__,
             'uris': [
                 # Unstructured URIs.
                 "https://github.com/NewKnowledge/goat-d3m-wrapper",
@@ -74,7 +80,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
-        'python_path': 'd3m.primitives.distil.Goat.forward',
+        'python_path': 'd3m.primitives.data_cleaning.multitable_featurization.Goat_forward',
         # Choose these from a controlled vocabulary in the schema. If anything is missing which would
         # best describe the primitive, make a merge request.
         'algorithm_types': [
