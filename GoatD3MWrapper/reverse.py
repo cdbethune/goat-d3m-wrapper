@@ -34,7 +34,8 @@ class Hyperparams(hyperparams.Hyperparams):
         min_size=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='names of columns with image paths'
-    ),
+    )
+    
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
