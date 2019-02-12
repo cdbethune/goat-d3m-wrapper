@@ -73,6 +73,11 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             ),
         },
         {
+            "type": "UBUNTU",
+            "package": "default-jre",
+            "version": "2:1.8-56ubuntu2"
+        },
+        {
             "type": "TGZ",
             "key": "photon-db-latest",
             "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
