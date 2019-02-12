@@ -117,6 +117,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 self.cache = collections.OrderedDict()
 
             def get(self, key):
+                key = ''.join(str(e) for e in key)
                 try:
                     value = self.cache.pop(key)
                     self.cache[key] = value
@@ -125,6 +126,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     return -1
 
             def set(self, key, value):
+                key = ''.join(str(e) for e in key)
                 try:
                     self.cache.pop(key)
                 except KeyError:
@@ -173,7 +175,7 @@ if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata"
-    from d3m.primitives.distil.Goat import reverse as reverse_goat # form of import
+    from d3m.primitives.data_cleaning.multitable_featurization import Goat_reverse as reverse_goat # form of import
     client = reverse_goat(hyperparams={'target_columns':['Long/Lat'],'rampup':8},volumes=volumes)
     print("reverse geocoding...")
     print("result:")

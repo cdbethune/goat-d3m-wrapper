@@ -36,7 +36,7 @@ class Hyperparams(hyperparams.Hyperparams):
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
         description='names of columns with image paths'
     )
-    
+
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
@@ -180,8 +180,8 @@ if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
     volumes = {} # d3m large primitive architecture dict of large files
     volumes["photon-db-latest"] = "/geocodingdata"
-    from d3m.primitives.distil.Goat import forward as goat # form of import
-    client = goat(hyperparams={'target_columns':['Location'],'rampup':8},volumes=volumes)
+    from d3m.primitives.data_cleaning.multitable_featurization import Goat_forward as goat # form of import
+    client = goat(hyperparams={'target_columns':['Location'],'rampup':20},volumes=volumes)
     start = time.time()
     result = client.produce(inputs = input_df)
     end = time.time()
