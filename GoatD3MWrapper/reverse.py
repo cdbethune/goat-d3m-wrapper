@@ -19,7 +19,7 @@ from common_primitives import utils as utils_cp
 
 
 __author__ = 'Distil'
-__version__ = '1.0.5'
+__version__ = '1.0.6'
 __contact__ = 'mailto:paul@newknowledge.io'
 
 
