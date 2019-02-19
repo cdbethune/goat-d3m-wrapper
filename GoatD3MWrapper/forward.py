@@ -113,15 +113,14 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                  (name, address, etc) - one location per row in the specified target column
         
         timeout : float
-            A maximum time this primitive should take to produce outputs during this method call, in seconds.
-            Inapplicable for now...
+            A maximum time this primitive should take to produce outputs during this method call, in seconds. N/A
         iterations : int
-            How many of internal iterations should the primitive do. Inapplicable for now...
+            How many of internal iterations should the primitive do. N/A for now...
 
         Returns
         -------
         Outputs
-            Pandas dataframe, with a List of 2 floats [longitude, latitude] per row/location
+            Pandas dataframe, with a pair of 2 float columns -- [longitude, latitude] -- per original row/location column
         """
         # LRU Cache helper class
         class LRUCache:
@@ -168,10 +167,14 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                             if tmp['features'][0]['geometry']['coordinates']:
                                 out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
                                 out_df.ix[j,2*i+1] = tmp['features'][0]['geometry']['coordinates'][1]
+                                target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
+                                target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
                     goat_cache.set(location,str(tmp['features'][0]['geometry']['coordinates']))
                 else:
                     out_df.ix[j,2*i] = ast.literal_eval(cache_ret)[0] # longitude
                     out_df.ix[j,2*i+1] = ast.literal_eval(cache_ret)[1] # latitude
+                    target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
+                    target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
