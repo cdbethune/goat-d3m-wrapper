@@ -20,7 +20,7 @@ from common_primitives import utils as utils_cp
 
 
 __author__ = 'Distil'
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 __contact__ = 'mailto:paul@newknowledge.io'
 
 
@@ -161,8 +161,10 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)
                     tmp = self._decoder.decode(r.text)
-                    if tmp['features'][0]['geometry']['coordinates']:
-                        out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
+                    if tmp['features']: # make sure (sub-)dictionaries are non-empty
+                        if tmp['features'][0]['geometry']:
+                            if tmp['features'][0]['geometry']['coordinates']:
+                                out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
                     goat_cache.set(location,out_df.ix[j,i])
                 else:
                     out_df.ix[j,i] = cache_ret
