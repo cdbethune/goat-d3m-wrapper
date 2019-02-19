@@ -1,5 +1,6 @@
 import os
 import sys
+import ast
 import subprocess
 import collections
 import pandas as pd
@@ -146,9 +147,10 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         goat_cache = LRUCache(10) # should length be a hyper-parameter?
         target_columns = self.hyperparams['target_columns']
+        target_columns_long_lat = [target_columns[i//2] for i in range(len(target_columns)*2)]
         rampup = self.hyperparams['rampup']
         frame = inputs
-        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
+        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns_long_lat)
         # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(rampup)
@@ -164,21 +166,23 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     if tmp['features']: # make sure (sub-)dictionaries are non-empty
                         if tmp['features'][0]['geometry']:
                             if tmp['features'][0]['geometry']['coordinates']:
-                                out_df.ix[j,i] = str(tmp['features'][0]['geometry']['coordinates'])
-                    goat_cache.set(location,out_df.ix[j,i])
+                                out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
+                                out_df.ix[j,2*i+1] = tmp['features'][0]['geometry']['coordinates'][1]
+                    goat_cache.set(location,str(tmp['features'][0]['geometry']['coordinates']))
                 else:
-                    out_df.ix[j,i] = cache_ret
+                    out_df.ix[j,2*i] = ast.literal_eval(cache_ret)[0] # longitude
+                    out_df.ix[j,2*i+1] = ast.literal_eval(cache_ret)[1] # latitude
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
-        for i,ith_column in enumerate(target_columns):
+        for i,ith_column in enumerate(target_columns_long_lat):
             # for every column
             col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
-            col_dict['structural_type'] = type("it is a string")
-            col_dict['name'] = target_columns[i]
-            col_dict['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/FloatVector', 'https://metadata.datadrivendiscovery.org/types/Attribute')
+            col_dict['structural_type'] = type(0.0)
+            col_dict['name'] = target_columns_long_lat[i]
+            col_dict['semantic_types'] = ('https://schema.org/Float', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
 
         return CallResult(d3m_df)
