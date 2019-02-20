@@ -157,6 +157,8 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         # geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
+            target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
+            target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
             for location in frame.ix[:,ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
@@ -167,14 +169,11 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                             if tmp['features'][0]['geometry']['coordinates']:
                                 out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
                                 out_df.ix[j,2*i+1] = tmp['features'][0]['geometry']['coordinates'][1]
-                                target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
-                                target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
+                                
                     goat_cache.set(location,str(tmp['features'][0]['geometry']['coordinates']))
                 else:
                     out_df.ix[j,2*i] = ast.literal_eval(cache_ret)[0] # longitude
                     out_df.ix[j,2*i+1] = ast.literal_eval(cache_ret)[1] # latitude
-                    target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
-                    target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
