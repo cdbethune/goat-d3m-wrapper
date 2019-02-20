@@ -19,7 +19,7 @@ from common_primitives import utils as utils_cp
 
 
 __author__ = 'Distil'
-__version__ = '1.0.6'
+__version__ = '1.0.7'
 __contact__ = 'mailto:paul@newknowledge.io'
 
 
@@ -84,7 +84,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
-        'python_path': 'd3m.primitives.data_cleaning.multitable_featurization.Goat_reverse',
+        'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_reverse',
         # Choose these from a controlled vocabulary in the schema. If anything is missing which would
         # best describe the primitive, make a merge request.
         'algorithm_types': [
