@@ -187,7 +187,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             col_dict['semantic_types'] = ('https://schema.org/Float', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
 
-        return utils_cp(inputs,CallResult(d3m_df)) # append new columns
+        return utils_cp.append_columns(inputs,CallResult(d3m_df)) # append new columns
 
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
