@@ -87,7 +87,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
-        'python_path': 'd3m.primitives.data_cleaning.multitable_featurization.Goat_forward',
+        'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_forward',
         # Choose these from a controlled vocabulary in the schema. If anything is missing which would
         # best describe the primitive, make a merge request.
         'algorithm_types': [
