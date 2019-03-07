@@ -1,6 +1,5 @@
 import os
 import sys
-import ast
 import subprocess
 import collections
 import pandas as pd
@@ -45,9 +44,9 @@ class Hyperparams(hyperparams.Hyperparams):
 
 class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
-        Geocode all names of locations in specified columns into lat/long pairs. 
+        Geocode all names of locations in specified columns into lat/long pairs.
     """
-    
+
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
     metadata = metadata_base.PrimitiveMetadata({
@@ -96,22 +95,30 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         'primitive_family': metadata_base.PrimitiveFamily.DATA_CLEANING,
     })
 
-    
+
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, volumes: typing.Dict[str, str] = None)-> None:
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
-                
+
         self._decoder = JSONDecoder()
         self.volumes = volumes
+
+    def _is_geocoded(self, geocode_result) -> bool:
+        # check if geocoding was successful or not
+        if geocode_result['features'] and len(geocode_result['features']) > 0: # make sure (sub-)dictionaries are non-empty
+            if geocode_result['features'][0]['geometry']:
+                if geocode_result['features'][0]['geometry']['coordinates']:
+                    return True
+        return False
 
     def produce(self, *, inputs: Inputs, timeout: float = None, iterations: int = None) -> CallResult[Outputs]:
         """
         Accept a set of location strings, processes it and returns a set of long/lat coordinates.
-        
+
         Parameters
         ----------
         inputs : pandas dataframe containing strings representing some geographic locations -
                  (name, address, etc) - one location per row in the specified target column
-        
+
         timeout : float
             A maximum time this primitive should take to produce outputs during this method call, in seconds. N/A
         iterations : int
@@ -144,7 +151,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                         self.cache.popitem(last=False)
                 self.cache[key] = value
 
-        goat_cache = LRUCache(10) # should length be a hyper-parameter?
+        goat_cache = LRUCache(1000) # should length be a hyper-parameter?
         target_columns = self.hyperparams['target_columns']
         target_columns_long_lat = [target_columns[i//2] for i in range(len(target_columns)*2)]
         rampup = self.hyperparams['rampup']
@@ -164,16 +171,15 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)
                     tmp = self._decoder.decode(r.text)
-                    if tmp['features']: # make sure (sub-)dictionaries are non-empty
-                        if tmp['features'][0]['geometry']:
-                            if tmp['features'][0]['geometry']['coordinates']:
-                                out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
-                                out_df.ix[j,2*i+1] = tmp['features'][0]['geometry']['coordinates'][1]
-                                
-                    goat_cache.set(location,str(tmp['features'][0]['geometry']['coordinates']))
+                    if self._is_geocoded(tmp):
+                        out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
+                        out_df.ix[j,2*i+1] = tmp['features'][0]['geometry']['coordinates'][1]
+                        goat_cache.set(location,str(tmp['features'][0]['geometry']['coordinates']))
+                    else:
+                        goat_cache.set(location,'[float(\'nan\'), float(\'nan\')]')
                 else:
-                    out_df.ix[j,2*i] = ast.literal_eval(cache_ret)[0] # longitude
-                    out_df.ix[j,2*i+1] = ast.literal_eval(cache_ret)[1] # latitude
+                    out_df.ix[j,2*i] = eval(cache_ret)[0] # longitude
+                    out_df.ix[j,2*i+1] = eval(cache_ret)[1] # latitude
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
