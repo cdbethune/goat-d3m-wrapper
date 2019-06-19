@@ -21,22 +21,13 @@ from common_primitives import utils as utils_cp
 
 __author__ = 'Distil'
 __version__ = '1.0.7'
-__contact__ = 'mailto:paul@newknowledge.io'
+__contact__ = 'mailto:nklabs@newknowledge.com'
 
 
 Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
-    target_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[str](''),
-        default=(),
-        max_size=sys.maxsize,
-        min_size=0,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='names of columns with image paths'
-    )
-
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
@@ -45,6 +36,17 @@ class Hyperparams(hyperparams.Hyperparams):
 class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
         Geocode all names of locations in specified columns into lat/long pairs.
+
+        Parameters
+        ----------
+        inputs : pandas dataframe containing strings representing some geographic locations -
+                 (name, address, etc) - one location per row in columns marked as locationIndicator
+
+        Returns
+        -------
+        Outputs
+            Pandas dataframe, with a pair of 2 float columns -- [longitude, latitude] -- per original row/location column
+            appended as new columns
     """
 
     # Make sure to populate this with JSON annotations...
@@ -152,21 +154,23 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 self.cache[key] = value
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
-        target_columns = self.hyperparams['target_columns']
+
+        # target columns are columns with location tag
+        targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
+        target_columns = [list(inputs)[idx] for idx in targets]
         target_columns_long_lat = [target_columns[i//2] for i in range(len(target_columns)*2)]
-        rampup = self.hyperparams['rampup']
-        frame = inputs
-        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns_long_lat)
+        out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns_long_lat)
+        
         # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        time.sleep(rampup)
+        time.sleep(self.hyperparams['rampup'])
         address = 'http://localhost:2322/'
         # geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
             target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
             target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
-            for location in frame.ix[:,ith_column]:
+            for location in inputs.ix[:,ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)

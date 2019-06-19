@@ -20,31 +20,34 @@ from common_primitives import utils as utils_cp
 
 __author__ = 'Distil'
 __version__ = '1.0.7'
-__contact__ = 'mailto:paul@newknowledge.io'
+__contact__ = 'mailto:nklabs@newknowledge.com'
 
 
 Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
-    target_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[str](''),
-        default=(),
-        max_size=sys.maxsize,
-        min_size=0,
-        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='names of columns with image paths'
-    )
-    
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
 
 
 class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
-    """
-        Reverse geocode lat/long pairs in specified columns into names of locations. 
-    """
+        """
+        Accept a set of lat/long pair, processes it and returns a set corresponding geographic location names
+        
+        Parameters
+        ----------
+        inputs : pandas dataframe containing 2 coordinate float values, i.e., [longitude,latitude] 
+                 representing each geographic location of interest - a pair of values
+                 per location/row in the specified target column
+
+        Returns
+        -------
+        Outputs
+            Pandas dataframe containing one location per longitude/latitude pair (if reverse
+            geocoding possible, otherwise NaNs) appended as new columns
+        """
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
     metadata = metadata_base.PrimitiveMetadata({
@@ -139,8 +142,28 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                         self.cache.popitem(last=False)
                 self.cache[key] = value
 
-        goat_cache = LRUCache(10) # should length be a hyper-parameter?
-        target_columns = self.hyperparams['target_columns']
+        # find location columns, real columns, and real-vector columns
+        targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
+        real_values = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/FloatVector')
+        real_values += inputs.metadata.get_columns_with_semantic_type('http://schema.org/Integer')
+        real_values = list(set(real_values))
+        real_vectors = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Float')
+        target_columns = []
+
+        # convert target columns to list if they have single value and are adjacent in the df
+        for target, target_col in zip(targets, [list(inputs)[idx] for idx in targets]):
+            if target in real_vectors:
+                target_columns.append(target_col)
+            # pair of individual lat / lon columns already in list
+            elif list(inputs)[target - 1] in target_columns:
+                continue
+            elif target in real_values:
+                if target+1 in real_values:
+                    # convert to single column with list of [lat, lon]
+                    col_name = "new_col_" + target_col
+                    inputs[col_name] =  inputs.iloc[:,target:target+2].values.tolist()
+                    target_columns.append(col_name)
+
         rampup = self.hyperparams['rampup']
         frame = inputs
         out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
