@@ -33,21 +33,21 @@ class Hyperparams(hyperparams.Hyperparams):
 
 
 class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
-        """
-        Accept a set of lat/long pair, processes it and returns a set corresponding geographic location names
-        
-        Parameters
-        ----------
-        inputs : pandas dataframe containing 2 coordinate float values, i.e., [longitude,latitude] 
-                 representing each geographic location of interest - a pair of values
-                 per location/row in the specified target column
+    """
+    Accept a set of lat/long pair, processes it and returns a set corresponding geographic location names
+    
+    Parameters
+    ----------
+    inputs : pandas dataframe containing 2 coordinate float values, i.e., [longitude,latitude] 
+                representing each geographic location of interest - a pair of values
+                per location/row in the specified target column
 
-        Returns
-        -------
-        Outputs
-            Pandas dataframe containing one location per longitude/latitude pair (if reverse
-            geocoding possible, otherwise NaNs) appended as new columns
-        """
+    Returns
+    -------
+    Outputs
+        Pandas dataframe containing one location per longitude/latitude pair (if reverse
+        geocoding possible, otherwise NaNs) appended as new columns
+    """
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
     metadata = metadata_base.PrimitiveMetadata(
