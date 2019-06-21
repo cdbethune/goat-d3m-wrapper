@@ -146,10 +146,10 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         # find location columns, real columns, and real-vector columns
         targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
-        real_values = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/FloatVector')
+        real_values = inputs.metadata.get_columns_with_semantic_type('http://schema.org/Float')
         real_values += inputs.metadata.get_columns_with_semantic_type('http://schema.org/Integer')
         real_values = list(set(real_values))
-        real_vectors = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Float')
+        real_vectors = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/FloatVector')
         target_column_idxs = []
         target_columns = []
 
@@ -168,14 +168,17 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     inputs[col_name] =  inputs.iloc[:,target:target+2].values.tolist()
                     target_columns.append(col_name)
                     target_column_idxs.append(target)
-
+        print(f'target columns found: {target_columns}', file = sys.__stdout__)
         # delete columns with path names of nested media files
         outputs = inputs.remove_columns(target_column_idxs)
 
+        goat_cache = LRUCache(10)
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns)
         # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        time.sleep(self.hyperparams['rampup'])
+        PopenObj = subprocess.Popen(["java", "-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        print('sub-process opened\n', file = sys.__stdout__)
+        #time.sleep(self.hyperparams['rampup'])
+        time.sleep(60)
         address = 'http://localhost:2322/'
 
         # reverse-geocode each requested location
@@ -185,6 +188,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
+                    print('request successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
                     if tmp['features'][0]['properties']['name']:
                         out_df.iloc[j,i] = tmp['features'][0]['properties']['name']
@@ -194,7 +198,8 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
-
+        print(out_df.head(), file = sys.__stdout__)
+        print(outputs.head(), file = sys.__stdout__)
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
         for i,ith_column in enumerate(target_columns):
