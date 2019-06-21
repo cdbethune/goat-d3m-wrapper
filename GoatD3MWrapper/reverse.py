@@ -148,11 +148,13 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         real_values += inputs.metadata.get_columns_with_semantic_type('http://schema.org/Integer')
         real_values = list(set(real_values))
         real_vectors = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Float')
+        target_column_idxs = []
         target_columns = []
 
         # convert target columns to list if they have single value and are adjacent in the df
         for target, target_col in zip(targets, [list(inputs)[idx] for idx in targets]):
             if target in real_vectors:
+                target_column_idxs.append(target)
                 target_columns.append(target_col)
             # pair of individual lat / lon columns already in list
             elif list(inputs)[target - 1] in target_columns:
@@ -163,30 +165,34 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     col_name = "new_col_" + target_col
                     inputs[col_name] =  inputs.iloc[:,target:target+2].values.tolist()
                     target_columns.append(col_name)
+                    target_column_idxs.append(target)
 
-        rampup = self.hyperparams['rampup']
-        frame = inputs
-        out_df = pd.DataFrame(index=range(frame.shape[0]),columns=target_columns)
+        # delete columns with path names of nested media files
+        outputs = inputs.remove_columns(target_column_idxs)
+
+        out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns)
         # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        time.sleep(rampup)
+        time.sleep(self.hyperparams['rampup'])
         address = 'http://localhost:2322/'
+
         # reverse-geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
-            for longlat in frame.ix[:,ith_column]:
+            for longlat in inputs[ith_column]:
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
                     tmp = self._decoder.decode(r.text)
                     if tmp['features'][0]['properties']['name']:
-                        out_df.ix[j,i] = tmp['features'][0]['properties']['name']
-                    goat_cache.set(longlat,out_df.ix[j,i])
+                        out_df.iloc[j,i] = tmp['features'][0]['properties']['name']
+                    goat_cache.set(longlat,out_df.iloc[j,i])
                 else:
-                    out_df.ix[j,i] = cache_ret
+                    out_df.iloc[j,i] = cache_ret
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
+
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
         for i,ith_column in enumerate(target_columns):
@@ -196,8 +202,14 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             col_dict['name'] = target_columns[i]
             col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
-
-        return CallResult(d3m_df)
+        df_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
+        df_dict_1 = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, ))) 
+        df_dict['dimension'] = df_dict_1
+        df_dict_1['name'] = 'columns'
+        df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
+        df_dict_1['length'] = d3m_df.shape[1]
+        d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
+        return CallResult(outputs.append_columns(d3m_df))
     
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Long/Lat':[list([-97.7436995, 30.2711286]),list([-73.9866136, 40.7306458])]})
