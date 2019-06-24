@@ -169,14 +169,17 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 if target+1 in real_values:
                     # convert to single column with list of [lat, lon]
                     col_name = "new_col_" + target_col
-                    inputs[col_name] =  inputs.iloc[:,target:target+2].values.tolist()
+                    inputs[col_name] = inputs.iloc[:,target:target+2].values.tolist()
                     target_columns.append(col_name)
                     target_column_idxs.append(target)
+                    target_column_idxs.append(target + 1)
+                    target_column_idxs.append(inputs.shape[1] - 1)
         print(f'target columns found: {target_columns}', file = sys.__stdout__)
         
         # make sure columns are structured as 1) lat , 2) lon pairs
-        if inputs[target_columns].apply(lambda x: x[0]).max().any() > 90:
-            inputs[target_columns] = inputs[target_columns].apply(lambda x: x[::-1])
+        for col in target_columns:
+            if inputs[col].apply(lambda x: x[0]).max() > 90:
+                inputs[col] = inputs[col].apply(lambda x: x[::-1])
 
         # delete columns with path names of nested media files
         outputs = inputs.remove_columns(target_column_idxs)
@@ -194,14 +197,22 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             j = 0
             for longlat in inputs[ith_column]:
                 print(f'longlat: {longlat}', file= sys.__stdout__)
-                print(f'type longlat: {type(longlat)}', file= sys.__stdout__)
-                print(f'longlat 0: {longlat[0]}', file= sys.__stdout__)
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lat='+str(longlat[0])+'&lon='+str(longlat[1]))
-                    print('request successfully made!',  file = sys.__stdout__)
+                    print(f'request {j+1} successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
-                    if tmp['features'][0]['properties']['name']:
+                    if len(tmp['features']) == 0:
+                        if self.hyperparams['geocoding_resolution'] == 'postcode':
+                            out_df.iloc[j,i] = float('nan')
+                        else:
+                            out_df.iloc[j,i] = ''
+                    elif self.hyperparams['geocoding_resolution'] not in tmp['features'][0]['properties'].keys():
+                        if self.hyperparams['geocoding_resolution'] == 'postcode':
+                            out_df.iloc[j,i] = float('nan')
+                        else:
+                            out_df.iloc[j,i] = '' 
+                    else:
                         out_df.iloc[j,i] = tmp['features'][0]['properties'][self.hyperparams['geocoding_resolution']]
                     goat_cache.set(longlat,out_df.iloc[j,i])
                 else:
@@ -210,7 +221,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         # need to cleanup by closing the server when done...
         PopenObj.kill()
         print(out_df.head(), file = sys.__stdout__)
-        print(outputs.head(), file = sys.__stdout__)
+        print(list(outputs), file = sys.__stdout__)
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
         for i,ith_column in enumerate(target_columns):
@@ -218,10 +229,11 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
             if self.hyperparams['geocoding_resolution'] == 'postcode':
                 col_dict['structural_type'] = type(1)
+                col_dict['semantic_types'] = ('http://schema.org/Integer', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             else:
                 col_dict['structural_type'] = type("it is a string")
+                col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             col_dict['name'] = target_columns[i]
-            col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
         df_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
         df_dict_1 = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, ))) 

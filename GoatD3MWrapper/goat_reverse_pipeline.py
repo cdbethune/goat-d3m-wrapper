@@ -19,13 +19,13 @@ step_1.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_re
 step_1.add_output('produce')
 pipeline_description.add_step(step_1)
 
-# Step 3: column_parser
+# Step 2: column_parser
 step_2 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.column_parser.DataFrameCommon'))
 step_2.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.1.produce')
 step_2.add_output('produce')
 pipeline_description.add_step(step_2)
 
-# Step 4: imputer
+# Step 3: imputer
 step_3 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.imputer.SKlearn'))
 step_3.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.2.produce')
 step_3.add_output('produce')
@@ -33,7 +33,7 @@ step_3.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE
 step_3.add_hyperparameter(name='use_semantic_types', argument_type=ArgumentType.VALUE,data=True)
 pipeline_description.add_step(step_3)
 
-# Step 2: DISTIL/NK goat
+# Step 4: DISTIL/NK goat
 step_4 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.geocoding.Goat_reverse'))
 step_4.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.3.produce')
 step_4.add_output('produce')
@@ -47,8 +47,15 @@ step_5.add_output('produce')
 step_5.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE,data='replace')
 pipeline_description.add_step(step_5)
 
+# Step :6 construct output
+step_6 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.construct_predictions.DataFrameCommon'))
+step_6.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.5.produce')
+step_6.add_argument(name='reference', argument_type=ArgumentType.CONTAINER, data_reference='steps.1.produce')
+step_6.add_output('produce')
+pipeline_description.add_step(step_6)
+
 # Final Output
-pipeline_description.add_output(name='output predictions', data_reference='steps.5.produce')
+pipeline_description.add_output(name='output predictions', data_reference='steps.6.produce')
 
 # Output json pipeline
 blob = pipeline_description.to_json()
