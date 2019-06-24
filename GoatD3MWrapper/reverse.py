@@ -169,6 +169,11 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     target_columns.append(col_name)
                     target_column_idxs.append(target)
         print(f'target columns found: {target_columns}', file = sys.__stdout__)
+        
+        # make sure columns are structured as 1) lon , 2) lat pairs
+        if inputs[target_columns].map(lambda x: x[1]).max() > 90:
+            inputs[target_columns] = inputs[target_columns].map(lambda x: x[::-1])
+
         # delete columns with path names of nested media files
         outputs = inputs.remove_columns(target_column_idxs)
 
@@ -187,7 +192,6 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 print(f'longlat: {longlat}', file= sys.__stdout__)
                 print(f'type longlat: {type(longlat)}', file= sys.__stdout__)
                 print(f'longlat 0: {longlat[0]}', file= sys.__stdout__)
-                print(f'longlat 0: {str(longlat[0])}', file= sys.__stdout__)
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
