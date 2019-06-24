@@ -27,6 +27,10 @@ Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
+    geocoding_resolution = hyperparams.Enumeration(default = 'city', 
+        semantic_types = ['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        values = ['city', 'country', 'state', 'postcode'],
+        description = 'type of clustering algorithm to use')
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
@@ -171,8 +175,8 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         print(f'target columns found: {target_columns}', file = sys.__stdout__)
         
         # make sure columns are structured as 1) lat , 2) lon pairs
-        if inputs[target_columns].map(lambda x: x[0]).max() > 90:
-            inputs[target_columns] = inputs[target_columns].map(lambda x: x[::-1])
+        if inputs[target_columns].apply(lambda x: x[0]).max().any() > 90:
+            inputs[target_columns] = inputs[target_columns].apply(lambda x: x[::-1])
 
         # delete columns with path names of nested media files
         outputs = inputs.remove_columns(target_column_idxs)
@@ -198,7 +202,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     print('request successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
                     if tmp['features'][0]['properties']['name']:
-                        out_df.iloc[j,i] = tmp['features'][0]['properties']['name']
+                        out_df.iloc[j,i] = tmp['features'][0]['properties'][self.hyperparams['geocoding_resolution']]
                     goat_cache.set(longlat,out_df.iloc[j,i])
                 else:
                     out_df.iloc[j,i] = cache_ret
@@ -212,7 +216,10 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         for i,ith_column in enumerate(target_columns):
             # for every column
             col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
-            col_dict['structural_type'] = type("it is a string")
+            if self.hyperparams['geocoding_resolution'] == 'postcode':
+                col_dict['structural_type'] = type(1)
+            else:
+                col_dict['structural_type'] = type("it is a string")
             col_dict['name'] = target_columns[i]
             col_dict['semantic_types'] = ('http://schema.org/Text', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
