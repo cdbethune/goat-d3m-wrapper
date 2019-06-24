@@ -40,11 +40,11 @@ step_4.add_hyperparameter(name='use_semantic_types', argument_type=ArgumentType.
 pipeline_description.add_step(step_4)
 
 # Step 5: XG Boost clf
-step_5 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.classification.xgboost_gbtree'))
+step_5 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.classification.xgboost_gbtree.DataFrameCommon'))
 step_5.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.4.produce')
 step_5.add_argument(name='outputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.4.produce')
 step_5.add_output('produce')
-step_5.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE,data=True)
+step_5.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE,data='replace')
 pipeline_description.add_step(step_5)
 
 # Final Output
