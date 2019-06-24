@@ -175,16 +175,19 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         goat_cache = LRUCache(10)
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns)
         # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java", "-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        PopenObj = subprocess.Popen(["java", "-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         print('sub-process opened\n', file = sys.__stdout__)
-        #time.sleep(self.hyperparams['rampup'])
-        time.sleep(60)
+        time.sleep(self.hyperparams['rampup'])
         address = 'http://localhost:2322/'
 
         # reverse-geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
             for longlat in inputs[ith_column]:
+                print(f'longlat: {longlat}', file= sys.__stdout__)
+                print(f'type longlat: {type(longlat)}', file= sys.__stdout__)
+                print(f'longlat 0: {longlat[0]}', file= sys.__stdout__)
+                print(f'longlat 0: {str(longlat[0])}', file= sys.__stdout__)
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lon='+str(longlat[0])+'&lat='+str(longlat[1]))
