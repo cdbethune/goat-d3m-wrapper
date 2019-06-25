@@ -161,7 +161,6 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
-        print(inputs.head(), file = sys.__stdout__)
         # target columns are columns with location tag
         target_column_idxs = self.hyperparams['target_columns']
         target_columns = [list(inputs)[idx] for idx in target_column_idxs]
@@ -179,12 +178,9 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
             target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
             for location in inputs[ith_column]:
-                print(location, file = sys.__stdout__)
-                print(ith_column, file = sys.__stdout__)
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)
-                    print(f'request {j+1} successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
                         out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
@@ -217,17 +213,17 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
         return CallResult(outputs.append_columns(d3m_df))
 
-if __name__ == '__main__':
-    input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
-    volumes = {} # d3m large primitive architecture dict of large files
-    volumes["photon-db-latest"] = "/geocodingdata"
-    from d3m.primitives.data_cleaning.multitable_featurization import Goat_forward as goat # form of import
-    client = goat(hyperparams={'target_columns':['Location'],'rampup':20},volumes=volumes)
-    start = time.time()
-    result = client.produce(inputs = input_df)
-    end = time.time()
-    print("geocoding...")
-    print("result:")
-    print(result)
-    print("time elapsed is (in sec):")
-    print(end-start)
+# if __name__ == '__main__':
+#     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})
+#     volumes = {} # d3m large primitive architecture dict of large files
+#     volumes["photon-db-latest"] = "/geocodingdata"
+#     from d3m.primitives.data_cleaning.multitable_featurization import Goat_forward as goat # form of import
+#     client = goat(hyperparams={'target_columns':['Location'],'rampup':20},volumes=volumes)
+#     start = time.time()
+#     result = client.produce(inputs = input_df)
+#     end = time.time()
+#     print("geocoding...")
+#     print("result:")
+#     print(result)
+#     print("time elapsed is (in sec):")
+#     print(end-start)

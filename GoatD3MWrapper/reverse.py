@@ -28,7 +28,7 @@ Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
     geocoding_resolution = hyperparams.Enumeration(default = 'city', 
-        semantic_types = ['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        semantic_types = ['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         values = ['city', 'country', 'state', 'postcode'],
         description = 'type of clustering algorithm to use')
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
@@ -174,7 +174,6 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     target_column_idxs.append(target)
                     target_column_idxs.append(target + 1)
                     target_column_idxs.append(inputs.shape[1] - 1)
-        print(f'target columns found: {target_columns}', file = sys.__stdout__)
         
         # make sure columns are structured as 1) lat , 2) lon pairs
         for col in target_columns:
@@ -188,7 +187,6 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns)
         # the `12g` in the following may become a hyper-parameter in the future
         PopenObj = subprocess.Popen(["java", "-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        print('sub-process opened\n', file = sys.__stdout__)
         time.sleep(self.hyperparams['rampup'])
         address = 'http://localhost:2322/'
 
@@ -196,11 +194,9 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         for i,ith_column in enumerate(target_columns):
             j = 0
             for longlat in inputs[ith_column]:
-                print(f'longlat: {longlat}', file= sys.__stdout__)
                 cache_ret = goat_cache.get(longlat)
                 if(cache_ret==-1):
                     r = requests.get(address+'reverse?lat='+str(longlat[0])+'&lon='+str(longlat[1]))
-                    print(f'request {j+1} successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
                     if len(tmp['features']) == 0:
                         if self.hyperparams['geocoding_resolution'] == 'postcode':
@@ -220,8 +216,6 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
-        print(out_df.head(), file = sys.__stdout__)
-        print(list(outputs), file = sys.__stdout__)
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
         for i,ith_column in enumerate(target_columns):
