@@ -19,14 +19,15 @@ step_1.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_re
 step_1.add_output('produce')
 pipeline_description.add_step(step_1)
 
-# Step 2: column_parser
-step_2 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.column_parser.DataFrameCommon'))
+# Step 3: DISTIL/NK goat
+step_2 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.geocoding.Goat_forward'))
 step_2.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.1.produce')
 step_2.add_output('produce')
+step_2.add_hyperparameter(name='target_columns', argument_type=ArgumentType.VALUE,data=[1])
 pipeline_description.add_step(step_2)
 
-# Step 4: DISTIL/NK goat
-step_3 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.geocoding.Goat_forward'))
+# Step 4: column_parser
+step_3 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.column_parser.DataFrameCommon'))
 step_3.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.2.produce')
 step_3.add_output('produce')
 pipeline_description.add_step(step_3)

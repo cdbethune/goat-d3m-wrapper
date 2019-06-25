@@ -161,6 +161,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
+        print(inputs.head(), file = sys.__stdout__)
         # target columns are columns with location tag
         target_column_idxs = self.hyperparams['target_columns']
         target_columns = [list(inputs)[idx] for idx in target_column_idxs]
@@ -178,6 +179,8 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
             target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
             for location in inputs[ith_column]:
+                print(location, file = sys.__stdout__)
+                print(ith_column, file = sys.__stdout__)
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)
