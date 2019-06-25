@@ -88,6 +88,8 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             },
             {
                 "type": "TGZ",
+                "key": "photon-db-latest",
+                "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
                 "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
             }],
             # The same path the primitive is registered with entry points in setup.py.
