@@ -55,49 +55,51 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
     # Make sure to populate this with JSON annotations...
     # This should contain only metadata which cannot be automatically determined from the code.
-    metadata = metadata_base.PrimitiveMetadata({
-        # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
-        'id': "c7c61da3-cf57-354e-8841-664853370106",
-        'version': __version__,
-        'name': "Goat_forward",
-        # Keywords do not have a controlled vocabulary. Authors can put here whatever they find suitable.
-        'keywords': ['Geocoder'],
-        'source': {
-            'name': __author__,
-            'contact': __contact__,
-            'uris': [
-                # Unstructured URIs.
-                "https://github.com/NewKnowledge/goat-d3m-wrapper",
+    metadata = metadata_base.PrimitiveMetadata(
+        {
+            # Simply an UUID generated once and fixed forever. Generated using "uuid.uuid4()".
+            'id': "c7c61da3-cf57-354e-8841-664853370106",
+            'version': __version__,
+            'name': "Goat_forward",
+            # Keywords do not have a controlled vocabulary. Authors can put here whatever they find suitable.
+            'keywords': ['Geocoder'],
+            'source': {
+                'name': __author__,
+                'contact': __contact__,
+                'uris': [
+                    # Unstructured URIs.
+                    "https://github.com/NewKnowledge/goat-d3m-wrapper",
+                ],
+            },
+            # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
+            # Of course Python packages can also have their own dependencies, but sometimes it is necessary to
+            # install a Python package first to be even able to run setup.py of another package. Or you have
+            # a dependency which is not on PyPi.
+            'installation': [{
+                'type': metadata_base.PrimitiveInstallationType.PIP,
+                'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatD3MWrapper'.format(
+                    git_commit=utils.current_git_commit(os.path.dirname(__file__)),
+                ),
+            },
+            {
+                "type": "UBUNTU",
+                "package": "default-jre",
+                "version": "2:1.8-56ubuntu2"
+            },
+            {
+                "type": "TGZ",
+                "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
+            }],
+            # The same path the primitive is registered with entry points in setup.py.
+            'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_forward',
+            # Choose these from a controlled vocabulary in the schema. If anything is missing which would
+            # best describe the primitive, make a merge request.
+            'algorithm_types': [
+                metadata_base.PrimitiveAlgorithmType.NUMERICAL_METHOD,
             ],
-        },
-        # A list of dependencies in order. These can be Python packages, system packages, or Docker images.
-        # Of course Python packages can also have their own dependencies, but sometimes it is necessary to
-        # install a Python package first to be even able to run setup.py of another package. Or you have
-        # a dependency which is not on PyPi.
-         'installation': [{
-            'type': metadata_base.PrimitiveInstallationType.PIP,
-            'package_uri': 'git+https://github.com/NewKnowledge/goat-d3m-wrapper.git@{git_commit}#egg=GoatD3MWrapper'.format(
-                git_commit=utils.current_git_commit(os.path.dirname(__file__)),
-            ),
-        },
-        {
-            "type": "UBUNTU",
-            "package": "default-jre",
-            "version": "2:1.8-56ubuntu2"
-        },
-        {
-            "type": "TGZ",
-            "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
-        }],
-        # The same path the primitive is registered with entry points in setup.py.
-        'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_forward',
-        # Choose these from a controlled vocabulary in the schema. If anything is missing which would
-        # best describe the primitive, make a merge request.
-        'algorithm_types': [
-            metadata_base.PrimitiveAlgorithmType.NUMERICAL_METHOD,
-        ],
-        'primitive_family': metadata_base.PrimitiveFamily.DATA_CLEANING,
-    })
+            'primitive_family': metadata_base.PrimitiveFamily.DATA_CLEANING,
+        }
+    )
 
 
     def __init__(self, *, hyperparams: Hyperparams, random_seed: int = 0, volumes: typing.Dict[str, str] = None)-> None:
@@ -224,5 +226,3 @@ if __name__ == '__main__':
     print(result)
     print("time elapsed is (in sec):")
     print(end-start)
-import os
-import sys
