@@ -32,28 +32,25 @@ class Hyperparams(hyperparams.Hyperparams):
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
     target_columns = hyperparams.Set(
-        elements=hyperparams.Hyperparameter[str](''),
+        elements=hyperparams.Hyperparameter[int](-1),
         default=(),
-        max_size=sys.maxsize,
-        min_size=0,
         semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
-        description='names of columns with image paths'
-    )
+        description='indices of column with geolocation formatted as text that should be converted to lat,lon pairs')
 
 class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
-        Geocode all names of locations in specified columns into lat/long pairs.
+    Geocode all names of locations in specified columns into lat/long pairs.
 
-        Parameters
-        ----------
-        inputs : pandas dataframe containing strings representing some geographic locations -
+    Parameters
+    ----------
+    inputs : pandas dataframe containing strings representing some geographic locations -
                  (name, address, etc) - one location per row in columns marked as locationIndicator
 
-        Returns
-        -------
-        Outputs
-            Pandas dataframe, with a pair of 2 float columns -- [longitude, latitude] -- per original row/location column
-            appended as new columns
+    Returns
+    -------
+    Outputs
+        Pandas dataframe, with a pair of 2 float columns -- [longitude, latitude] -- per original row/location column
+        appended as new columns
     """
 
     # Make sure to populate this with JSON annotations...
@@ -90,8 +87,6 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         },
         {
             "type": "TGZ",
-            "key": "photon-db-latest",
-            "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
             "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
         }],
         # The same path the primitive is registered with entry points in setup.py.
@@ -163,8 +158,10 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
         # target columns are columns with location tag
-        target_columns = self.hyperparams['target_columns']
+        target_column_idxs = self.hyperparams['target_columns']
+        target_columns = [list(inputs)[idx] for idx in target_column_idxs]
         target_columns_long_lat = [target_columns[i//2] for i in range(len(target_columns)*2)]
+        outputs = inputs.remove_columns(target_column_idxs)
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns_long_lat)
         
         # the `12g` in the following may become a hyper-parameter in the future
@@ -227,3 +224,5 @@ if __name__ == '__main__':
     print(result)
     print("time elapsed is (in sec):")
     print(end-start)
+import os
+import sys
