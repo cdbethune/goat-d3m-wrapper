@@ -31,7 +31,14 @@ class Hyperparams(hyperparams.Hyperparams):
     rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
-
+    target_columns = hyperparams.Set(
+        elements=hyperparams.Hyperparameter[str](''),
+        default=(),
+        max_size=sys.maxsize,
+        min_size=0,
+        semantic_types=['https://metadata.datadrivendiscovery.org/types/ControlParameter'],
+        description='names of columns with image paths'
+    )
 
 class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
     """
@@ -156,13 +163,12 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
         # target columns are columns with location tag
-        targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
-        target_columns = [list(inputs)[idx] for idx in targets]
+        target_columns = self.hyperparams['target_columns']
         target_columns_long_lat = [target_columns[i//2] for i in range(len(target_columns)*2)]
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns_long_lat)
         
         # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.2.7.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(self.hyperparams['rampup'])
         address = 'http://localhost:2322/'
         # geocode each requested location
@@ -170,10 +176,11 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             j = 0
             target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
             target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
-            for location in inputs.ix[:,ith_column]:
+            for location in inputs[ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
                     r = requests.get(address+'api?q='+location)
+                    print(f'request {j+1} successfully made!',  file = sys.__stdout__)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
                         out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
@@ -187,17 +194,24 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 j=j+1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
+
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
         for i,ith_column in enumerate(target_columns_long_lat):
             # for every column
             col_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, i)))
             col_dict['structural_type'] = type(0.0)
+            col_dict['semantic_types'] = ('http://schema.org/Float', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             col_dict['name'] = target_columns_long_lat[i]
-            col_dict['semantic_types'] = ('https://schema.org/Float', 'https://metadata.datadrivendiscovery.org/types/Attribute')
             d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS, i), col_dict)
-
-        return CallResult(utils_cp.append_columns(inputs,d3m_df)) # append new columns
+        df_dict = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, )))
+        df_dict_1 = dict(d3m_df.metadata.query((metadata_base.ALL_ELEMENTS, ))) 
+        df_dict['dimension'] = df_dict_1
+        df_dict_1['name'] = 'columns'
+        df_dict_1['semantic_types'] = ('https://metadata.datadrivendiscovery.org/types/TabularColumn',)
+        df_dict_1['length'] = d3m_df.shape[1]
+        d3m_df.metadata = d3m_df.metadata.update((metadata_base.ALL_ELEMENTS,), df_dict)
+        return CallResult(outputs.append_columns(d3m_df))
 
 if __name__ == '__main__':
     input_df = pd.DataFrame(data={'Name':['Paul','Ben'],'Location':['Austin','New York City']})

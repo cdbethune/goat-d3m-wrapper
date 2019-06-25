@@ -7,45 +7,42 @@ import sys
 pipeline_description = Pipeline()
 pipeline_description.add_input(name='inputs')
 
-# Step 1: dataset_to_dataframe
-step_0 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.dataset_to_dataframe.Common'))
-step_0.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='inputs.0')
-step_0.add_output('produce')
+# Step 0: Denormalize primitive
+step_0 = PrimitiveStep(primitive=index.get_primitive("d3m.primitives.data_transformation.denormalize.Common"))
+step_0.add_argument(name="inputs", argument_type=ArgumentType.CONTAINER, data_reference="inputs.0")
+step_0.add_output("produce")
 pipeline_description.add_step(step_0)
 
-# Step 2: DISTIL/NK pca feature selection
-step_1 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.geocoding.Goat_forward'))
+# Step 1: dataset_to_dataframe
+step_1 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.dataset_to_dataframe.Common'))
 step_1.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.0.produce')
 step_1.add_output('produce')
 pipeline_description.add_step(step_1)
 
-# Step 3: column_parser
+# Step 2: column_parser
 step_2 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.column_parser.DataFrameCommon'))
 step_2.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.1.produce')
 step_2.add_output('produce')
 pipeline_description.add_step(step_2)
 
-# Step 4: imputer
-step_3 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.imputer.SKlearn'))
+# Step 4: DISTIL/NK goat
+step_3 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_cleaning.geocoding.Goat_forward'))
 step_3.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.2.produce')
 step_3.add_output('produce')
-step_3.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE,data='replace')
-step_3.add_hyperparameter(name='use_semantic_types', argument_type=ArgumentType.VALUE,data=True)
 pipeline_description.add_step(step_3)
 
 # Step 5: XG Boost clf
-step_4 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.classification.xgboost_gbtree'))
+step_4 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.classification.xgboost_gbtree.DataFrameCommon'))
 step_4.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.3.produce')
 step_4.add_argument(name='outputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.3.produce')
 step_4.add_output('produce')
-step_4.add_hyperparameter(name='add_index_columns', argument_type=ArgumentType.VALUE,data=True)
-step_4.add_hyperparameter(name='use_semantic_types', argument_type=ArgumentType.VALUE,data=True)
+step_4.add_hyperparameter(name='return_result', argument_type=ArgumentType.VALUE,data='replace')
 pipeline_description.add_step(step_4)
 
-# Step 6: construct output
+# Step :6 construct output
 step_5 = PrimitiveStep(primitive=index.get_primitive('d3m.primitives.data_transformation.construct_predictions.DataFrameCommon'))
 step_5.add_argument(name='inputs', argument_type=ArgumentType.CONTAINER, data_reference='steps.4.produce')
-step_5.add_argument(name='reference', argument_type=ArgumentType.CONTAINER, data_reference='steps.0.produce')
+step_5.add_argument(name='reference', argument_type=ArgumentType.CONTAINER, data_reference='steps.1.produce')
 step_5.add_output('produce')
 pipeline_description.add_step(step_5)
 

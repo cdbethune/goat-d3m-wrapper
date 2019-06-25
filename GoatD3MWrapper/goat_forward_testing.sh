@@ -1,16 +1,15 @@
 #!/bin/bash -e 
 
-Datasets=()
+Datasets=('uu3_world_development_indicators' 'LL0_acled_reduced')
 mkdir /primitives/v2019.6.7/Distil/d3m.primitives.data_cleaning.geocoding.Goat_forward
 cd /primitives/v2019.6.7/Distil/d3m.primitives.data_cleaning.geocoding.Goat_forward
 mkdir 1.0.7
 cd 1.0.7
-python3 -m d3m index describe -i 4 d3m.primitives.data_cleaning.geocoding.Goat_forward > primitive.json
+#python3 -m d3m index describe -i 4 d3m.primitives.data_cleaning.geocoding.Goat_reverse > primitive.json
 mkdir pipelines
 cd pipelines
 mkdir test_pipeline
 cd test_pipeline
-
 # create text file to record scores and timing information
 touch scores.txt
 echo "DATASET, SCORE, EXECUTION TIME" >> scores.txt
@@ -22,7 +21,7 @@ for i in "${Datasets[@]}"; do
 
   # test and score pipeline
   start=`date +%s` 
-  python3 -m d3m runtime -d /datasets/ -v / fit-score -m *.meta -p *.json -c scores.csv
+  python3 -m d3m runtime -d /datasets/ -v /datasets/ fit-score -m *.meta -p *.json -c scores.csv
   end=`date +%s`
   runtime=$((end-start))
 
