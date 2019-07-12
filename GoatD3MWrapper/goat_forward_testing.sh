@@ -1,6 +1,6 @@
 #!/bin/bash -e 
 
-Datasets=('uu3_world_development_indicators' 'LL0_acled_reduced')
+Datasets=('LL0_acled_reduced')
 mkdir /primitives/v2019.6.7/Distil/d3m.primitives.data_cleaning.geocoding.Goat_forward
 cd /primitives/v2019.6.7/Distil/d3m.primitives.data_cleaning.geocoding.Goat_forward
 mkdir 1.0.7

@@ -89,8 +89,8 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             {
                 "type": "TGZ",
                 "key": "photon-db-latest",
-                "file_uri": "http://public.datadrivendiscovery.org/photon-db.tar.gz",
-                "file_digest":"eaa06866b104e47116af7cb29edb4d946cbef3be701574008b3e938c32d8c020"
+                "file_uri": "http://public.datadrivendiscovery.org/photon.tar.gz",
+                "file_digest":"ba120618c861eba6711028a75fa408f2b1ddbcbe8892810bd1b727918f28937d"
             }],
             # The same path the primitive is registered with entry points in setup.py.
             'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_forward',
