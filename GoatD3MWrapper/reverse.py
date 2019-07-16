@@ -89,7 +89,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 "type": "TGZ",
                 "key": "photon-db-latest",
                 "file_uri": "http://public.datadrivendiscovery.org/photon.tar.gz",
-                "file_digest":"ba120618c861eba6711028a75fa408f2b1ddbcbe8892810bd1b727918f28937d"
+                "file_digest":"d7e3d5c6ae795b5f53d31faa3a9af63a9691070782fa962dfcd0edf13e8f1eab"
             }],
             # The same path the primitive is registered with entry points in setup.py.
             'python_path': 'd3m.primitives.data_cleaning.geocoding.Goat_reverse',
