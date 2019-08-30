@@ -109,6 +109,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
         self._decoder = JSONDecoder()
+        # the `12g` in the following may become a hyper-parameter in the future
         self.PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         self.address = 'http://localhost:2322/'
 
@@ -184,8 +185,6 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         outputs = inputs.remove_columns(target_column_idxs)
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns_long_lat)
         
-        # the `12g` in the following may become a hyper-parameter in the future
-        time.sleep(self.hyperparams['rampup'])
         # geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
