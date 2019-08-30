@@ -8,6 +8,7 @@ import time
 import typing
 from json import JSONDecoder
 from typing import List, Tuple
+import logging
 
 from d3m.primitive_interfaces.transformer import TransformerPrimitiveBase
 from d3m.primitive_interfaces.base import CallResult
@@ -28,9 +29,9 @@ Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
-    rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
+    timeout = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=100, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
-        description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
+        description='timeout, how much time to give elastic search database to startup, may vary based on infrastructure')
     target_columns = hyperparams.Set(
         elements=hyperparams.Hyperparameter[int](-1),
         default=(),
@@ -108,8 +109,23 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
         self._decoder = JSONDecoder()
-        self.volumes = volumes
+        self.PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        self.address = 'http://localhost:2322/'
 
+        # confirm server is running before returning
+        interval = 10
+        while interval <= self.hyperparams['timeout']:
+            time.sleep(interval)
+            try:
+                r = requests.get(self.address + 'api?q=berlin')
+                if r.status_code != 200:
+                    sys.exit('Basic request does not return status code 200, exiting...')
+                return
+            except ConnectionRefusedError as error:
+                logging.debug(f'Connected refused, trying again in {interval} seconds')
+                interval += interval
+        sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+        
     def _is_geocoded(self, geocode_result) -> bool:
         # check if geocoding was successful or not
         if geocode_result['features'] and len(geocode_result['features']) > 0: # make sure (sub-)dictionaries are non-empty
@@ -169,9 +185,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns_long_lat)
         
         # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
         time.sleep(self.hyperparams['rampup'])
-        address = 'http://localhost:2322/'
         # geocode each requested location
         for i,ith_column in enumerate(target_columns):
             j = 0
@@ -180,7 +194,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             for location in inputs[ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
-                    r = requests.get(address+'api?q='+location)
+                    r = requests.get(self.address+'api?q='+location)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
                         out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
@@ -193,7 +207,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     out_df.ix[j,2*i+1] = eval(cache_ret)[1] # latitude
                 j=j+1
         # need to cleanup by closing the server when done...
-        PopenObj.kill()
+        self.PopenObj.kill()
 
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
