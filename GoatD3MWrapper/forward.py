@@ -29,7 +29,7 @@ Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
 class Hyperparams(hyperparams.Hyperparams):
-    timeout = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=100, semantic_types=[
+    rampup_timeout = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=100, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         description='timeout, how much time to give elastic search database to startup, may vary based on infrastructure')
     target_columns = hyperparams.Set(
