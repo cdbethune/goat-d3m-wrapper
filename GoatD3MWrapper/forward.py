@@ -114,7 +114,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         # confirm server is running before returning
         interval = 10
-        while interval <= self.hyperparams['timeout']:
+        while interval <= self.hyperparams['rampup_timeout']:
             time.sleep(interval)
             try:
                 r = requests.get(self.address + 'api?q=berlin')
