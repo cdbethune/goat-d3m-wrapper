@@ -148,6 +148,28 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                         self.cache.popitem(last=False)
                 self.cache[key] = value
 
+        # confirm that server is responding before proceeding
+        # the `12g` in the following may become a hyper-parameter in the future
+        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        address = 'http://localhost:2322/'
+        interval = counter = 10
+        return_successful = False
+        while counter <= self.hyperparams['rampup_timeout']:
+            time.sleep(interval)
+            try:
+                r = requests.get(address + 'api?q=berlin')
+                if r.status_code == 200:
+                    return_successful = True
+                    break
+                else:
+                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
+                    counter += interval
+            except ConnectionRefusedError as error:
+                logging.debug(f'Connected refused, trying again in {interval} seconds')
+                counter += interval
+        if not return_successful:
+            sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+
         # find location columns, real columns, and real-vector columns
         targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
         real_values = inputs.metadata.get_columns_with_semantic_type('http://schema.org/Float')
@@ -185,10 +207,6 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         goat_cache = LRUCache(10)
         out_df = pd.DataFrame(index=range(inputs.shape[0]),columns=target_columns)
-        # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java", "-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        time.sleep(self.hyperparams['rampup'])
-        address = 'http://localhost:2322/'
 
         # reverse-geocode each requested location
         for i,ith_column in enumerate(target_columns):

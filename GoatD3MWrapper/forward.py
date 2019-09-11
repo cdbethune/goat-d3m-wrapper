@@ -109,27 +109,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         super().__init__(hyperparams=hyperparams, random_seed=random_seed, volumes=volumes)
 
         self._decoder = JSONDecoder()
-        # the `12g` in the following may become a hyper-parameter in the future
-        self.PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        self.address = 'http://localhost:2322/'
-
-        # confirm server is running before returning
-        interval = 10
-        while interval <= self.hyperparams['rampup_timeout']:
-            time.sleep(interval)
-            try:
-                r = requests.get(self.address + 'api?q=berlin')
-                if r.status_code == 200:
-                    return
-                else:
-                    print(f'Basic request does not return status code 200, trying again in {interval} seconds', file = sys.__stdout__)
-                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
-                    interval += interval
-            except ConnectionRefusedError as error:
-                print(f'Connected refused, trying again in {interval} seconds', file = sys.__stdout__)
-                logging.debug(f'Connected refused, trying again in {interval} seconds')
-                interval += interval
-        sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+        self.volumes = volumes 
         
     def _is_geocoded(self, geocode_result) -> bool:
         # check if geocoding was successful or not
@@ -180,6 +160,28 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                         self.cache.popitem(last=False)
                 self.cache[key] = value
 
+        # confirm that server is responding before proceeding
+        # the `12g` in the following may become a hyper-parameter in the future
+        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+        address = 'http://localhost:2322/'
+        interval = counter = 10
+        return_successful = False
+        while counter <= self.hyperparams['rampup_timeout']:
+            time.sleep(interval)
+            try:
+                r = requests.get(address + 'api?q=berlin')
+                if r.status_code == 200:
+                    return_successful = True
+                    break
+                else:
+                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
+                    counter += interval
+            except ConnectionRefusedError as error:
+                logging.debug(f'Connected refused, trying again in {interval} seconds')
+                counter += interval
+        if not return_successful:
+            sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
         # target columns are columns with location tag
@@ -197,7 +199,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             for location in inputs[ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
-                    r = requests.get(self.address+'api?q='+location)
+                    r = requests.get(address+'api?q='+location)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
                         out_df.ix[j,2*i] = tmp['features'][0]['geometry']['coordinates'][0]
@@ -210,7 +212,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                     out_df.ix[j,2*i+1] = eval(cache_ret)[1] # latitude
                 j=j+1
         # need to cleanup by closing the server when done...
-        self.PopenObj.kill()
+        PopenObj.kill()
 
         # Build d3m-type dataframe
         d3m_df = d3m_DataFrame(out_df)
