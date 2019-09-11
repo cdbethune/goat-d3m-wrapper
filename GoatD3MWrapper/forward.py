@@ -28,6 +28,50 @@ __contact__ = 'mailto:nklabs@newknowledge.com'
 Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
+# LRU Cache helper class
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = collections.OrderedDict()
+
+    def get(self, key):
+        try:
+            value = self.cache.pop(key)
+            self.cache[key] = value
+            return value
+        except KeyError:
+            return -1
+
+    def set(self, key, value):
+        try:
+            self.cache.pop(key)
+        except KeyError:
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+        self.cache[key] = value
+
+# helper function to check that server is running and responding correctly
+
+def check_geocoding_server(volumes, timeout = 100, interval = 10):
+    # confirm that server is responding before proceeding
+    # the `12g` in the following may become a hyper-parameter in the future
+    PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+    address = 'http://localhost:2322/'
+    counter = interval
+    while counter <= timeout:
+        time.sleep(interval)
+        try:
+            r = requests.get(address + 'api?q=berlin')
+            if r.status_code == 200:
+                return
+            else:
+                logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
+                counter += interval
+        except ConnectionRefusedError as error:
+            logging.debug(f'Connected refused, trying again in {interval} seconds')
+            counter += interval
+    sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+
 class Hyperparams(hyperparams.Hyperparams):
     rampup_timeout = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=100, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
@@ -138,49 +182,9 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         Outputs
             Pandas dataframe, with a pair of 2 float columns -- [longitude, latitude] -- per original row/location column
         """
-        # LRU Cache helper class
-        class LRUCache:
-            def __init__(self, capacity):
-                self.capacity = capacity
-                self.cache = collections.OrderedDict()
-
-            def get(self, key):
-                try:
-                    value = self.cache.pop(key)
-                    self.cache[key] = value
-                    return value
-                except KeyError:
-                    return -1
-
-            def set(self, key, value):
-                try:
-                    self.cache.pop(key)
-                except KeyError:
-                    if len(self.cache) >= self.capacity:
-                        self.cache.popitem(last=False)
-                self.cache[key] = value
 
         # confirm that server is responding before proceeding
-        # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        address = 'http://localhost:2322/'
-        interval = counter = 10
-        return_successful = False
-        while counter <= self.hyperparams['rampup_timeout']:
-            time.sleep(interval)
-            try:
-                r = requests.get(address + 'api?q=berlin')
-                if r.status_code == 200:
-                    return_successful = True
-                    break
-                else:
-                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
-                    counter += interval
-            except ConnectionRefusedError as error:
-                logging.debug(f'Connected refused, trying again in {interval} seconds')
-                counter += interval
-        if not return_successful:
-            sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+        check_geocoding_server(self.volumes, self.hyperparams['rampup_timeout'])
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 

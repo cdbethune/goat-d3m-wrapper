@@ -16,6 +16,7 @@ from d3m.metadata import hyperparams, base as metadata_base, params
 
 from d3m.container import DataFrame as d3m_DataFrame
 from common_primitives import utils as utils_cp
+from forward import check_geocoding_server
 
 
 __author__ = 'Distil'
@@ -26,14 +27,38 @@ __contact__ = 'mailto:nklabs@newknowledge.com'
 Inputs = container.pandas.DataFrame
 Outputs = container.pandas.DataFrame
 
+# LRU Cache helper class
+class LRUCache:
+    def __init__(self, capacity):
+        self.capacity = capacity
+        self.cache = collections.OrderedDict()
+
+    def get(self, key):
+        key = ''.join(str(e) for e in key)
+        try:
+            value = self.cache.pop(key)
+            self.cache[key] = value
+            return value
+        except KeyError:
+            return -1
+
+    def set(self, key, value):
+        key = ''.join(str(e) for e in key)
+        try:
+            self.cache.pop(key)
+        except KeyError:
+            if len(self.cache) >= self.capacity:
+                self.cache.popitem(last=False)
+        self.cache[key] = value
+
 class Hyperparams(hyperparams.Hyperparams):
     geocoding_resolution = hyperparams.Enumeration(default = 'city', 
         semantic_types = ['https://metadata.datadrivendiscovery.org/types/TuningParameter'],
         values = ['city', 'country', 'state', 'postcode'],
         description = 'type of clustering algorithm to use')
-    rampup = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=10, semantic_types=[
+    rampup_timeout = hyperparams.UniformInt(lower=1, upper=sys.maxsize, default=100, semantic_types=[
         'https://metadata.datadrivendiscovery.org/types/TuningParameter'],
-        description='ramp-up time, to give elastic search database time to startup, may vary based on infrastructure')
+        description='timeout, how much time to give elastic search database to startup, may vary based on infrastructure')
 
 
 class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
@@ -124,51 +149,10 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             Pandas dataframe containing one location per longitude/latitude pair (if reverse
             geocoding possible, otherwise NaNs)
         """
-        # LRU Cache helper class
-        class LRUCache:
-            def __init__(self, capacity):
-                self.capacity = capacity
-                self.cache = collections.OrderedDict()
-
-            def get(self, key):
-                key = ''.join(str(e) for e in key)
-                try:
-                    value = self.cache.pop(key)
-                    self.cache[key] = value
-                    return value
-                except KeyError:
-                    return -1
-
-            def set(self, key, value):
-                key = ''.join(str(e) for e in key)
-                try:
-                    self.cache.pop(key)
-                except KeyError:
-                    if len(self.cache) >= self.capacity:
-                        self.cache.popitem(last=False)
-                self.cache[key] = value
 
         # confirm that server is responding before proceeding
         # the `12g` in the following may become a hyper-parameter in the future
-        PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=self.volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        address = 'http://localhost:2322/'
-        interval = counter = 10
-        return_successful = False
-        while counter <= self.hyperparams['rampup_timeout']:
-            time.sleep(interval)
-            try:
-                r = requests.get(address + 'api?q=berlin')
-                if r.status_code == 200:
-                    return_successful = True
-                    break
-                else:
-                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
-                    counter += interval
-            except ConnectionRefusedError as error:
-                logging.debug(f'Connected refused, trying again in {interval} seconds')
-                counter += interval
-        if not return_successful:
-            sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
+        check_geocoding_server(self.volumes, self.hyperparams['rampup_timeout']) 
 
         # find location columns, real columns, and real-vector columns
         targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')
