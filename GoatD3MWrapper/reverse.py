@@ -152,7 +152,7 @@ class reverse_goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         # confirm that server is responding before proceeding
         address = 'http://localhost:2322/'
-        check_geocoding_server(address, self.volumes, self.hyperparams['rampup_timeout']) 
+        PopenObj = check_geocoding_server(address, self.volumes, self.hyperparams['rampup_timeout']) 
 
         # find location columns, real columns, and real-vector columns
         targets = inputs.metadata.get_columns_with_semantic_type('https://metadata.datadrivendiscovery.org/types/Location')

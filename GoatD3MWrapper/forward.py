@@ -62,7 +62,7 @@ def check_geocoding_server(address, volumes, timeout = 100, interval = 10):
         try:
             r = requests.get(address + 'api?q=berlin')
             if r.status_code == 200:
-                return
+                return PopenObj
             else:
                 logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
                 counter += interval
@@ -184,7 +184,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
 
         # confirm that server is responding before proceeding
         address = 'http://localhost:2322/'
-        check_geocoding_server(address, self.volumes, self.hyperparams['rampup_timeout'])
+        PopenObj = check_geocoding_server(address, self.volumes, self.hyperparams['rampup_timeout'])
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
