@@ -52,11 +52,10 @@ class LRUCache:
 
 # helper function to check that server is running and responding correctly
 
-def check_geocoding_server(volumes, timeout = 100, interval = 10):
+def check_geocoding_server(address, volumes, timeout = 100, interval = 10):
     # confirm that server is responding before proceeding
     # the `12g` in the following may become a hyper-parameter in the future
     PopenObj = subprocess.Popen(["java","-Xms12g","-Xmx12g","-jar","photon-0.3.1.jar"],cwd=volumes['photon-db-latest'],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-    address = 'http://localhost:2322/'
     counter = interval
     while counter <= timeout:
         time.sleep(interval)
@@ -184,7 +183,8 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
         """
 
         # confirm that server is responding before proceeding
-        check_geocoding_server(self.volumes, self.hyperparams['rampup_timeout'])
+        address = 'http://localhost:2322/'
+        check_geocoding_server(address, self.volumes, self.hyperparams['rampup_timeout'])
 
         goat_cache = LRUCache(1000) # should length be a hyper-parameter?
 
