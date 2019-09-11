@@ -119,10 +119,14 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             time.sleep(interval)
             try:
                 r = requests.get(self.address + 'api?q=berlin')
-                if r.status_code != 200:
-                    sys.exit('Basic request does not return status code 200, exiting...')
-                return
+                if r.status_code == 200:
+                    return
+                else:
+                    print(f'Basic request does not return status code 200, trying again in {interval} seconds', file = sys.__stdout__)
+                    logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
+                    interval += interval
             except ConnectionRefusedError as error:
+                print(f'Connected refused, trying again in {interval} seconds', file = sys.__stdout__)
                 logging.debug(f'Connected refused, trying again in {interval} seconds')
                 interval += interval
         sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
