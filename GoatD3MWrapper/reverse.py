@@ -16,7 +16,7 @@ from d3m.metadata import hyperparams, base as metadata_base, params
 
 from d3m.container import DataFrame as d3m_DataFrame
 from common_primitives import utils as utils_cp
-from forward import check_geocoding_server
+from .forward import check_geocoding_server
 
 
 __author__ = 'Distil'
