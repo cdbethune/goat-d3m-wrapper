@@ -66,7 +66,7 @@ def check_geocoding_server(address, volumes, timeout = 100, interval = 10):
             else:
                 logging.debug(f'Basic request does not return status code 200, trying again in {interval} seconds')
                 counter += interval
-        except ConnectionRefusedError as error:
+        except (ConnectionRefusedError, requests.exceptions.ConnectionError) as error:
             logging.debug(f'Connected refused, trying again in {interval} seconds')
             counter += interval
     sys.exit('Connection has not been accepted and timeout setting expired, exiting...')   
