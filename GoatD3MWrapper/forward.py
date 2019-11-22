@@ -22,7 +22,7 @@ from common_primitives import utils as utils_cp
 
 __author__ = 'Distil'
 __version__ = '1.0.7'
-__contact__ = 'mailto:nklabs@newknowledge.com'
+__contact__ = 'mailto:numa@yonder.co'
 
 
 Inputs = container.pandas.DataFrame
