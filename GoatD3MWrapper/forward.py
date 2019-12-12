@@ -200,6 +200,9 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             j = 0
             target_columns_long_lat[2*i]=target_columns_long_lat[2*i]+"_longitude"
             target_columns_long_lat[2*i+1]=target_columns_long_lat[2*i+1]+"_latitude"
+            
+            # remove ampersand from strings
+            inputs_cleaned = inputs[ith_column].apply(lambda val: re.sub(r'\s*&\s*', r' and ', val)
             for location in inputs[ith_column]:
                 cache_ret = goat_cache.get(location)
                 if(cache_ret==-1):
