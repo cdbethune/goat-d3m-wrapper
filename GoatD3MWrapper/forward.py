@@ -246,7 +246,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             inputs_cleaned = inputs[ith_column].apply(
                 lambda val: re.sub(r"\s*&\s*", r" and ", val)
             )
-            for location in inputs_cleaned[ith_column]:
+            for location in inputs_cleaned:
                 cache_ret = goat_cache.get(location)
                 if cache_ret == -1:
                     r = requests.get(address + "api?q=" + location)
