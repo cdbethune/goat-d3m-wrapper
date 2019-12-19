@@ -33,13 +33,17 @@ class LRUCache:
     def __init__(self, capacity):
         self.capacity = capacity
         self.cache = collections.OrderedDict()
+        self.hits = 0
+        self.misses = 0
 
     def get(self, key):
         try:
             value = self.cache.pop(key)
             self.cache[key] = value
+            self.hits = self.hits + 1
             return value
         except KeyError:
+            self.misses = self.misses + 1
             return -1
 
     def set(self, key, value):
@@ -219,7 +223,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             address, self.volumes, self.hyperparams["rampup_timeout"]
         )
 
-        goat_cache = LRUCache(1000)  # should length be a hyper-parameter?
+        goat_cache = LRUCache(2000)  # should length be a hyper-parameter?
 
         # target columns are columns with location tag
         target_column_idxs = self.hyperparams["target_columns"]
@@ -248,6 +252,7 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
                 cache_ret = goat_cache.get(location)
                 row_data = []
                 if cache_ret == -1:
+                    logging.debug(f"cache hits: {goat_cache.hits}, cache misses: {goat_cache.misses}")
                     r = requests.get(address + "api?q=" + location)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
