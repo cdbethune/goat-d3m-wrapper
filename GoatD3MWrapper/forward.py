@@ -228,11 +228,9 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             target_columns[i // 2] for i in range(len(target_columns) * 2)
         ]
         outputs = inputs.remove_columns(target_column_idxs)
-        out_df = pd.DataFrame(
-            index=range(inputs.shape[0]), columns=target_columns_long_lat
-        )
 
         # geocode each requested location
+        output_data = []
         for i, ith_column in enumerate(target_columns):
             j = 0
             target_columns_long_lat[2 * i] = (
@@ -248,29 +246,31 @@ class goat(TransformerPrimitiveBase[Inputs, Outputs, Hyperparams]):
             )
             for location in inputs_cleaned:
                 cache_ret = goat_cache.get(location)
+                row_data = []
                 if cache_ret == -1:
                     r = requests.get(address + "api?q=" + location)
                     tmp = self._decoder.decode(r.text)
                     if self._is_geocoded(tmp):
-                        out_df.ix[j, 2 * i] = tmp["features"][0]["geometry"][
-                            "coordinates"
-                        ][0]
-                        out_df.ix[j, 2 * i + 1] = tmp["features"][0]["geometry"][
-                            "coordinates"
-                        ][1]
-                        goat_cache.set(
-                            location, str(tmp["features"][0]["geometry"]["coordinates"])
-                        )
+                        row_data = tmp["features"][0]["geometry"]["coordinates"]
+                        goat_cache.set(location, str(row_data))
                     else:
                         goat_cache.set(location, "[float('nan'), float('nan')]")
                 else:
-                    out_df.ix[j, 2 * i] = eval(cache_ret)[0]  # longitude
-                    out_df.ix[j, 2 * i + 1] = eval(cache_ret)[1]  # latitude
+                    # cache_ret is [longitude, latitude]
+                    row_data = [eval(cache_ret)[0], eval(cache_ret)[1]]
+
+                if len(output_data) <= j:
+                    output_data.append(row_data)
+                else:
+                    output_data[j] = output_data[j] + row_data
                 j = j + 1
         # need to cleanup by closing the server when done...
         PopenObj.kill()
 
         # Build d3m-type dataframe
+        out_df = pd.DataFrame(
+            output_data, index=range(inputs.shape[0]), columns=target_columns_long_lat
+        )
         d3m_df = d3m_DataFrame(out_df)
         for i, ith_column in enumerate(target_columns_long_lat):
             # for every column
